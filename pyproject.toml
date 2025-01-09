@@ -3,9 +3,9 @@
 #build-backend = "setuptools.build_meta"
 
 [project]
-name = "scientific"
+name = "wikipedia"
 version = "0.0.1"
-description = "Classification of scientific papers"
+description = "Classification of Wikipedia articles using GNN"
 authors = [
   { name = "Rasmus Fiehn", email = "s204617@dtu.com" },
 ]

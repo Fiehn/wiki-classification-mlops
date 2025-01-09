@@ -1,3 +1,3 @@
 ## Documentation
 
-Documentation for scientific
+Documentation for wiki
