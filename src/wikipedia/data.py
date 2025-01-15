@@ -25,8 +25,6 @@ class WikiDataset():
             generate_data (bool): Whether to generate the data from torch_geometric.datasets.WikiCS
         """
         self.data_path = data_path
-        if not self.data_path == "":
-            raise FileNotFoundError(f"Data path {self.data_path} does not exist.")
         
         if generate_data:
             self.get_data(self.data_path)
