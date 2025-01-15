@@ -4,6 +4,7 @@ from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 import torch
 import typer
+import os
 
 # Downloaded from: https://github.com/pmernyei/wiki-cs-dataset
 # Using: https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/datasets/wikics.html#WikiCS
@@ -13,9 +14,7 @@ class WikiDataset():
     Can download, generate and load the data.
     Can also return dataloaders for training, validation and testing.
     """
-    def __init__(self, 
-                 data_path: str = typer.Argument("", help="Path to the data."),
-                 generate_data: bool = typer.Option(False)) -> None:
+    def __init__(self) -> None:
         """
         Initialize the dataset. Downloads the data to the path if it does not exist.
         Creates raw and processed data folders itself so give it "data/"
@@ -24,15 +23,31 @@ class WikiDataset():
             data_path (str): Path to the data
             generate_data (bool): Whether to generate the data from torch_geometric.datasets.WikiCS
         """
-        self.data_path = data_path
         
-        if generate_data:
-            self.get_data(self.data_path)
-
+        # Check if the data exists
+        if not os.path.exists("data/processed/data_undirected.pt"):
+            print("Data does not exist. Downloading...")
+            self.get_data()
+            
+        self.load_data()
         self.dataset = self.load_data()
 
-    def get_data(data_path: str,
-                normalize_bool: bool = False) -> None:
+    def __len__(self):
+        """ Returns the length of the dataset. """
+        return len(self.dataset)
+
+    def __getitem__(self, idx):
+        """ Returns the item at the index. """
+        return self.dataset[idx]
+    
+    @staticmethod
+    def download_data(self):
+        """ Downloads the data to the path. """
+        WikiCS(self.data_path)
+        print("Data downloaded.")
+    
+    @staticmethod
+    def get_data(normalize_bool: bool = False) -> None:
         """
         Pytorch Geometric has an inbuilt function for the WikiCS dataset.
         This function downloads the raw data and then it is possible to process it.
@@ -44,8 +59,10 @@ class WikiDataset():
         # Ensure the output folder exists
         transform = NormalizeFeatures() if normalize_bool else None
         
-        data = WikiCS(root=data_path, transform=transform)
+        data = WikiCS(root="data/", transform=transform)
+
         data.process()
+
         print("Data preprocessing complete.")
 
     def load_data(self):
@@ -56,7 +73,7 @@ class WikiDataset():
         It then becomes a python dict, we want a PyG Data object.
         Returns: PyG Data object with the data.
         """
-        loaded_tuple = torch.load("data/processed/data_undirected.pt")
+        loaded_tuple = torch.load("data/processed/data_undirected.pt",weights_only=True)
         # Assume it's something like (data_object, None)
         if isinstance(loaded_tuple, tuple):
             data = loaded_tuple[0]  # The PyG Data-like object
@@ -69,11 +86,6 @@ class WikiDataset():
 
         return data
 
-    def __len__(self):
-        return len(self.dataset.x)
-    def __getitem__(self, idx):
-        return self.dataset.x[idx], self.dataset.edge_index, self.dataset.y
-    
     def train_loader(self, batch_size: int = 32):
         """ Dataloader for training data. Takes the training mask and returns the data. """
         train_mask = self.dataset.train_mask
@@ -89,3 +101,8 @@ class WikiDataset():
         test_mask = self.dataset.test_mask
         test_data = self.dataset[test_mask]
         return DataLoader([test_data], batch_size=batch_size, shuffle=False)
+
+
+if __name__ == "__main__":
+    da = WikiDataset()
+    
