@@ -3,6 +3,11 @@ invoke==2.2.0
 
 # pre-commit
 pre-commit==3.5.0
+torch_geometric==2.6.1
+torch>=2.2.2
+numpy>=1.21.2
+typer==0.4.0
+pathlib==1.0.1
 
 # testing
 pytest==7.4.3
