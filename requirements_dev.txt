@@ -2,7 +2,7 @@
 invoke==2.2.0
 
 # pre-commit
-pre-commit==3.5.0
+pre-commit==4.0.1
 torch_geometric==2.6.1
 torch>=2.2.2
 numpy>=1.21.2
