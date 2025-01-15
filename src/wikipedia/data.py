@@ -14,7 +14,7 @@ class WikiDataset():
     Can also return dataloaders for training, validation and testing.
     """
     def __init__(self, 
-                 data_path: str = typer.Argument(..., help="Path to the data."),
+                 data_path: str = typer.Argument("", help="Path to the data."),
                  generate_data: bool = typer.Option(False)) -> None:
         """
         Initialize the dataset. Downloads the data to the path if it does not exist.
@@ -25,7 +25,7 @@ class WikiDataset():
             generate_data (bool): Whether to generate the data from torch_geometric.datasets.WikiCS
         """
         self.data_path = data_path
-        if not self.data_path.exists():
+        if not self.data_path == "":
             raise FileNotFoundError(f"Data path {self.data_path} does not exist.")
         
         if generate_data:
