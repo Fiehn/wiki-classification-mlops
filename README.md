@@ -2,7 +2,7 @@
 # Classification of Wikipedia pages 
 
 This repository was carried out by group 3 in [the MLOps course at DTU](https://skaftenicki.github.io/dtu_mlops/). 
-Group 3 consists of: Clara Regine Hoeg Kold, Rasmus Lyhne Fiehn, Emma Christine Berggrein Andersen, Frederik Baj Henriksen, and Ollie Elmgreen.
+Group 3 consists of: Clara Regine Hoeg Kold, Rasmus Lyhne Fiehn, Emma Christine Berggrein Andersen, Frederik Baj Henriksen, and Oliver Elmgreen.
 
 
 ## Overall goal of the project
