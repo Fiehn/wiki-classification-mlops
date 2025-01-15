@@ -91,9 +91,3 @@ class WikiDataset():
         test_mask = self.dataset.test_mask
         test_data = self.dataset[test_mask]
         return DataLoader([test_data], batch_size=batch_size, shuffle=False)
-    
-        
-
-# if __name__ == "__main__":
-    # typer.run(MyDataset)
-
