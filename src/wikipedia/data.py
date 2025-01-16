@@ -32,6 +32,10 @@ class WikiDataset():
         self.load_data()
         self.dataset = self.load_data()
 
+        self.dataset.train_mask = self.train_mask()
+        self.dataset.val_mask = self.val_mask()
+        self.dataset.test_mask = self.test_mask()
+
     def __len__(self):
         """ Returns the length of the dataset. """
         return len(self.dataset)
@@ -80,28 +84,25 @@ class WikiDataset():
         else:
             data = loaded_tuple
 
+
         # Make sure it's a PyG Data object
         if not isinstance(data, Data):
             data = Data(**data._asdict()) if hasattr(data, "_asdict") else Data(**dict(data))
 
         return data
 
-    def train_loader(self, batch_size: int = 32):
-        """ Dataloader for training data. Takes the training mask and returns the data. """
-        train_mask = self.dataset.train_mask
-        train_data = self.dataset[train_mask]
-        return DataLoader([train_data], batch_size=batch_size, shuffle=True)
-    def val_loader(self, batch_size: int = 32):
-        """ Dataloader for validation data. Takes the validation mask and returns the data. """
-        val_mask = self.dataset.val_mask
-        val_data = self.dataset[val_mask]
-        return DataLoader([val_data], batch_size=batch_size, shuffle=False)
-    def test_loader(self, batch_size: int = 32):
-        """ Dataloader for test data. Takes the test mask and returns the data. """
-        test_mask = self.dataset.test_mask
-        test_data = self.dataset[test_mask]
-        return DataLoader([test_data], batch_size=batch_size, shuffle=False)
+    def data_loader(self, batch_size: int = 32):
+        """ Dataloader for the full dataset. """
+        return DataLoader(self.dataset, batch_size=batch_size, shuffle=True)
 
+    def train_mask(self):
+        # This collapses the split dimensions from the paper
+        # should IDEALLY NOT be used in practice
+        return self.dataset.train_mask.sum(dim=1).bool()
+    def val_mask(self):
+        return self.dataset.val_mask.sum(dim=1).bool()
+    def test_mask(self):
+        return self.dataset.test_mask.bool()
 
 if __name__ == "__main__":
     da = WikiDataset()

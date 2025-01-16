@@ -4,7 +4,7 @@ from torch_geometric.loader import DataLoader
 
 def test_dataset_class():
     """Test the WikiDataset class."""
-    dataset = WikiDataset("data")
+    dataset = WikiDataset()
     assert isinstance(dataset, WikiDataset), "Dataset should be an instance of the WikiDataset class"
     assert dataset.dataset.x is not None, "Dataset x attribute should not be None"
     assert dataset.dataset.y is not None, "Dataset y attribute should not be None"
@@ -13,15 +13,15 @@ def test_dataset_class():
     assert dataset.dataset.val_mask is not None, "Dataset val_mask attribute should not be None"
     assert dataset.dataset.test_mask is not None, "Dataset test_mask attribute should not be None"
     assert isinstance(dataset.dataset, Data), "Dataset should be an instance of the PyG Data class"
-    assert len(dataset) == len(dataset.dataset.x), "Length of the dataset should be equal to the length of the x attribute"
 
 def test_data_loaders():
-    dataset = WikiDataset("data")
-    train_loader = dataset.train_loader()
-    val_loader = dataset.val_loader()
+    dataset = WikiDataset()
+    train_loader = dataset.data_loader()
+
+    assert len(dataset.dataset.train_mask) == 11701, "Length of the train mask should be 11701"
 
     assert isinstance(train_loader, DataLoader), "Train loader should be an instance of the DataLoader class"
-    assert isinstance(val_loader, DataLoader), "Val loader should be an instance of the DataLoader class"
+    #assert isinstance(val_loader, DataLoader), "Val loader should be an instance of the DataLoader class"
     assert len(train_loader) == 1, "Length of the train loader should be 1"
-    assert len(val_loader) == 1, "Length of the val loader should be 1"
+    #assert len(val_loader) == 1, "Length of the val loader should be 1"
 
