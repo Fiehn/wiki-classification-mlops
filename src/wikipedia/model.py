@@ -1,11 +1,8 @@
-# Cited from https://github.com/eyhl/group5-pyg-dtu-mlops/tree/main/src/models
-
 import torch
 import torch.nn.functional as F
 from torch import nn
 from torch_geometric.nn import GCNConv  # type: ignore
 import pytorch_lightning as pl
-
 
 # Simple Graph Convolutional Network (GCN) model using PyTorch Geometric. 
 class GCN(pl.LightningModule):
@@ -14,12 +11,15 @@ class GCN(pl.LightningModule):
     ) -> None:
         super().__init__()
         
+        self.criterion = F.nll_loss
+
         self.model = nn.Sequential(
             GCNConv(num_features, hidden_channels),
             nn.ReLU(),
             nn.Dropout(dropout),
             GCNConv(hidden_channels, num_classes),
             nn.Dropout(dropout),
+            nn.LogSoftmax(dim=1),
         )
 
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
@@ -27,17 +27,15 @@ class GCN(pl.LightningModule):
             raise ValueError(
                 "Expected input is not a 2D tensor," f"instead it is a {x.ndim}D tensor."
             )
-        if x.shape[1] != 1433:
-            raise ValueError("Feature vector should be of size 1433.")
-        
+    
         x = self.model(x, edge_index)
         return x
     
-    def training_step(self, batch, batch_idx, loss_fn=F.nll_loss):
+    def training_step(self, batch, batch_idx):
         x, edge_index, y = batch.x, batch.edge_index, batch.y
 
-        preds = self(x, edge_index)
-        loss = loss_fn(preds, y)
+        preds = self(x[batch.train_mask], edge_index[batch.train_mask])
+        loss = self.criterion(preds, y[batch.train_mask])
 
         acc = (preds.argmax(dim=1) == y).sum() / len(y)
         self.log("train_loss", loss)
@@ -46,8 +44,8 @@ class GCN(pl.LightningModule):
         return loss
     
     def validation_step(self, batch) -> None:
-        data, target = batch
-        preds = self(data)
+        x, edge_index, target = batch.x, batch.edge_index, batch.y
+        preds = self(x[batch.val_mask], edge_index[batch.val_mask])
         loss = self.criterion(preds, target)
         acc = (target == preds.argmax(dim=-1)).float().mean()
         self.log('val_loss', loss, on_epoch=True)
@@ -58,19 +56,18 @@ class GCN(pl.LightningModule):
     
     def predict(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
         return self(x, edge_index).argmax(dim=-1)
-        
+    
+def loade_checkpoint(filepath):
+    checkpoint = torch.load(filepath)
+    model = GCN(checkpoint["hidden_channels"],
+                checkpoint["num_features"],
+                checkpoint["num_classes"],
+                checkpoint["dropout"])
+    model.load_state_dict(checkpoint['state_dict'])
 
-# def load_checkpoint(filepath):
-#     checkpoint = torch.load(filepath)
-#     model = GCN(checkpoint["hidden_channels"],
-#                 checkpoint["num_features"],
-#                 checkpoint["num_classes"],
-#                 checkpoint["dropout"])
-#     model.load_state_dict(checkpoint['state_dict'])
-
-#     return model
+    return model
 
 if __name__ == "__main__":
-    model = GCN(hidden_channels=16, num_features=1433, num_classes=7, dropout=0.5)
+    model = GCN(hidden_channels=16, num_features=300, num_classes=10, dropout=0.5)
     print(model)
     print("Model loaded successfully.")
