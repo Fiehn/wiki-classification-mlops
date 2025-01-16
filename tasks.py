@@ -3,8 +3,12 @@ import os
 from invoke import Context, task
 
 WINDOWS = os.name == "nt"
-PROJECT_NAME = "scientific"
-PYTHON_VERSION = "3.11"
+PROJECT_NAME = "wikipedia"
+PYTHON_VERSION = "3.12"
+
+# prefix string to try uv first, then python
+#prefix = "uv" if not WINDOWS else "python"
+
 
 # Setup commands
 @task
@@ -38,7 +42,7 @@ def preprocess_data(ctx: Context) -> None:
 @task
 def train(ctx: Context) -> None:
     """Train model."""
-    ctx.run(f"python src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
+    ctx.run(f"python src/{PROJECT_NAME}/train.py data/processed/data_undirected.pt", echo=True, pty=not WINDOWS)
 
 @task
 def test(ctx: Context) -> None:
