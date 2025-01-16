@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - dataload
   pull_request:
     branches:
       - main
