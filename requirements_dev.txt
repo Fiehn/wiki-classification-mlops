@@ -11,7 +11,7 @@ pathlib==1.0.1
 ipython==8.31.0
 
 # testing
-pytest==7.4.3
+pytest==8.3.4
 coverage==7.6.9
 
 # linting
