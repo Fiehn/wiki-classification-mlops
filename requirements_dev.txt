@@ -8,6 +8,7 @@ torch>=2.2.2
 numpy>=1.21.2
 typer==0.4.0
 pathlib==1.0.1
+ipython==8.31.0
 
 # testing
 pytest==7.4.3

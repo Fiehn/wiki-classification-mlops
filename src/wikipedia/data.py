@@ -1,62 +1,109 @@
-from pathlib import Path
 from torch_geometric.datasets import WikiCS
-from torch.utils.data import Dataset
+from torch_geometric.transforms import NormalizeFeatures
+from torch_geometric.data import Data
+from torch_geometric.loader import DataLoader
+import torch
 import typer
+import os
 
 # Downloaded from: https://github.com/pmernyei/wiki-cs-dataset
 # Using: https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/datasets/wikics.html#WikiCS
 
-class MyDataset(Dataset):
-    """My custom dataset."""
-
-    def __init__(self, raw_data_path: Path) -> None:
+class WikiDataset():
+    """ Wiki dataset class. 
+    Can download, generate and load the data.
+    Can also return dataloaders for training, validation and testing.
+    """
+    def __init__(self) -> None:
         """
-        Initialize the dataset.
-        
+        Initialize the dataset. Downloads the data to the path if it does not exist.
+        Creates raw and processed data folders itself so give it "data/"
+        Then saves a PyG Data object in the dataset attribute.
         Args:
-            raw_data_path (Path): Path where raw data is or will be downloaded.
+            data_path (str): Path to the data
+            generate_data (bool): Whether to generate the data from torch_geometric.datasets.WikiCS
         """
-        self.data_path = raw_data_path
-        self.dataset = None  # Placeholder for the WikiCS dataset
+        
+        # Check if the data exists
+        if not os.path.exists("data/processed/data_undirected.pt"):
+            print("Data does not exist. Downloading...")
+            self.get_data()
+            
+        self.load_data()
+        self.dataset = self.load_data()
 
-    def __len__(self) -> int:
-        """Return the length of the dataset."""
-        if self.dataset is None:
-            raise ValueError("Dataset is not loaded. Call preprocess() first.")
+        self.dataset.train_mask = self.train_mask()
+        self.dataset.val_mask = self.val_mask()
+        self.dataset.test_mask = self.test_mask()
+
+    def __len__(self):
+        """ Returns the length of the dataset. """
         return len(self.dataset)
 
-    def __getitem__(self, index: int):
-        """Return a given sample from the dataset."""
-        if self.dataset is None:
-            raise ValueError("Dataset is not loaded. Call preprocess() first.")
-        return self.dataset[index]
-
-    def preprocess(self, output_folder: Path) -> None:
+    def __getitem__(self, idx):
+        """ Returns the item at the index. """
+        return self.dataset[idx]
+    
+    @staticmethod
+    def download_data(self):
+        """ Downloads the data to the path. """
+        WikiCS(self.data_path)
+        print("Data downloaded.")
+    
+    @staticmethod
+    def get_data(normalize_bool: bool = False) -> None:
         """
-        Preprocess the raw data and save it to the output folder.
-        
+        Pytorch Geometric has an inbuilt function for the WikiCS dataset.
+        This function downloads the raw data and then it is possible to process it.
+        There are some transformations that can be applied to the data.    
         Args:
-            output_folder (Path): Directory where processed data will be saved.
+            data_path (str): Path to the data
+            normalize_bool (bool): Whether to normalize
         """
-        print(f"Downloading and processing data to: {output_folder}...")
-        self.dataset = WikiCS(root=str(output_folder))
+        # Ensure the output folder exists
+        transform = NormalizeFeatures() if normalize_bool else None
+        
+        data = WikiCS(root="data/", transform=transform)
+
+        data.process()
+
         print("Data preprocessing complete.")
 
+    def load_data(self):
+        """
+        The data is loaded from the path.
+        Saving the data in get_data gives a tuple with (true_data, None). 
+        This is wrong so we take the data from the tuple.
+        It then becomes a python dict, we want a PyG Data object.
+        Returns: PyG Data object with the data.
+        """
+        loaded_tuple = torch.load("data/processed/data_undirected.pt",weights_only=True)
+        # Assume it's something like (data_object, None)
+        if isinstance(loaded_tuple, tuple):
+            data = loaded_tuple[0]  # The PyG Data-like object
+        else:
+            data = loaded_tuple
 
-def preprocess(raw_data_path: Path, output_folder: Path) -> None:
-    """
-    Preprocess the WikiCS dataset and save it to the specified output folder.
-    
-    Args:
-        output_folder (Path): Directory where processed data will be saved.
-    """
-    # Ensure the output folder exists
-    output_folder.mkdir(parents=True, exist_ok=True)
 
-    dataset = MyDataset(raw_data_path)
-    dataset.preprocess(output_folder)
+        # Make sure it's a PyG Data object
+        if not isinstance(data, Data):
+            data = Data(**data._asdict()) if hasattr(data, "_asdict") else Data(**dict(data))
 
+        return data
+
+    def data_loader(self, batch_size: int = 32):
+        """ Dataloader for the full dataset. """
+        return DataLoader(self.dataset, batch_size=batch_size, shuffle=True)
+
+    def train_mask(self):
+        # This collapses the split dimensions from the paper
+        # should IDEALLY NOT be used in practice
+        return self.dataset.train_mask.sum(dim=1).bool()
+    def val_mask(self):
+        return self.dataset.val_mask.sum(dim=1).bool()
+    def test_mask(self):
+        return self.dataset.test_mask.bool()
 
 if __name__ == "__main__":
-    typer.run(preprocess)
-
+    da = WikiDataset()
+    
