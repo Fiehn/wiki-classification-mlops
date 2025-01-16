@@ -86,7 +86,7 @@ def train(
     )
 
     # Train the model
-    (trainer.fit(model=model, datamodule=DataLoader(dataset.dataset, batch_size=1, shuffle=True)),)
+    trainer.fit(model=model, train_dataloaders=DataLoader(dataset.dataset), val_dataloaders=DataLoader(dataset.dataset))
     # datamodule=DataLoader(dataset, batch_size=batch_size, shuffle=True))
 
     # Save the model
@@ -97,22 +97,22 @@ def train(
 
 
 def train_node_classifier(model_name, dataset, **model_kwargs):
-    pl.seed_everything(42)
-    node_data_loader = DataLoader(dataset, batch_size=1)
+    #pl.seed_everything(42)
+    node_data_loader = DataLoader(dataset, batch_size=20)
 
     # Create a PyTorch Lightning trainer
     root_dir = "logs/"
     trainer = pl.Trainer(
         default_root_dir=root_dir,
         accelerator="auto",
-        max_epochs=200,
-        enable_progress_bar=False,
+        max_epochs=20,
+        enable_progress_bar=True,
     )  # 0 because epoch size is 1
-    trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
 
     # Check whether pretrained model exists. If yes, load it and skip training
     model = NodeLevelGNN(model_name, **model_kwargs)
-
+    trainer.fit(model, node_data_loader, node_data_loader)
+    
     # Test best model on the test set
     test_result = trainer.test(model, dataloaders=node_data_loader, verbose=False)
     batch = next(iter(node_data_loader))
@@ -135,18 +135,18 @@ def print_results(result_dict):
 if __name__ == "__main__":
     data = WikiCS(root="data/")
 
-    if data.train_mask.dim() == 2:
-        data.train_mask = data.train_mask[:, 0]
-    if data.val_mask.dim() == 2:
-        data.val_mask = data.val_mask[:, 0]
-    if data.test_mask.dim() == 2:
-        data.test_mask = data.test_mask[:, 0]
+    # if data.train_mask.dim() == 2:
+    #     data.train_mask = data.train_mask[:, 0]
+    # if data.val_mask.dim() == 2:
+    #     data.val_mask = data.val_mask[:, 0]
+    # if data.test_mask.dim() == 2:
+    #     data.test_mask = data.test_mask[:, 0]
 
     node_mlp_model, node_mlp_result = train_node_classifier(
         model_name="MLP",
         dataset=data,
         c_in=data.num_node_features,
-        c_hidden=16,
+        c_hidden=32,
         c_out=data.y.max().item() + 1,
         num_layers=2,
         dp_rate=0.1,
