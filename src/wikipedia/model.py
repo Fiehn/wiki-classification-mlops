@@ -104,13 +104,17 @@ class NodeLevelGNN(pl.LightningModule):
 
     def training_step(self, batch, batch_idx):
         loss, acc = self.forward(batch, mode="train")
-        self.log("train_loss", loss)
-        self.log("train_acc", acc)
+        #self.log("train_loss", loss)
+        #self.log("train_acc", acc)
+        self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+        self.log("train_acc", acc, on_step=True, on_epoch=True, prog_bar=True, logger=True)
+
         return loss
 
     def validation_step(self, batch, batch_idx):
         _, acc = self.forward(batch, mode="val")
-        self.log("val_acc", acc)
+        #self.log("val_acc", acc)
+        self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
 
     def test_step(self, batch, batch_idx):
         _, acc = self.forward(batch, mode="test")

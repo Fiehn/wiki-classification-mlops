@@ -11,11 +11,15 @@ from model import GNNModel
 from model import NodeLevelGNN
 from torch_geometric.datasets import WikiCS
 
+# Logging
+import wandb
+from pytorch_lightning.loggers import WandbLogger
+
 app = typer.Typer()
 
 @app.command()
 def train(
-    #data_path: str = typer.Argument(..., help="Path to the data"),
+    # data_path: str = typer.Argument(..., help="Path to the data"),
     hidden_channels: int = typer.Option(16, help="Number of hidden channels"),
     dropout: float = typer.Option(0.5, help="Dropout rate"),
     lr: float = typer.Option(0.01, help="Learning rate"),
@@ -24,44 +28,72 @@ def train(
     early_stopping_callback: bool = typer.Option(True, help="Whether to use early stopping"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
 ) -> None:
-    # Load the data
+    
+    # Initialize WandbLogger
+    wandb_logger = WandbLogger(
+        project="wiki_classification",
+        config={
+            "hidden_channels": hidden_channels,
+            "dropout": dropout,
+            "lr": lr,
+            "num_epochs": num_epochs,
+            "batch_size": batch_size,
+            "early_stopping_callback": early_stopping_callback,
+            "model_checkpoint_callback": model_checkpoint_callback,
+        },
+    )
+    wandb_logger.experiment.log({"test_log": "Wandb is active!"})
 
+    # Load the data
     dataset = WikiDataset()
 
     print(f"Dataset loaded: {dataset}")
     print(f"Number of features: {dataset.num_features}, Number of classes: {dataset.num_classes}")
 
+    # Log dataset details to Wandb
+    wandb_logger.experiment.config.update(
+        {
+            "num_features": dataset.num_features,
+            "num_classes": dataset.num_classes,
+        }
+    )
+
     # load the model
-    model = GCN(hidden_channels=hidden_channels, num_features=dataset.num_features, num_classes=dataset.num_classes, dropout=dropout)
+    model = GCN(
+        hidden_channels=hidden_channels,
+        num_features=dataset.num_features,
+        num_classes=dataset.num_classes,
+        dropout=dropout,
+    )
     model.configure_optimizers(lr=lr)
 
     callbacks = []
     # Callbacks for early stopping and model checkpointing
     if early_stopping_callback:
-        early_stopping = pl.callbacks.EarlyStopping(patience=5,monitor="val_loss")
+        early_stopping = pl.callbacks.EarlyStopping(patience=5, monitor="val_loss")
         callbacks.append(early_stopping)
     if model_checkpoint_callback:
-        model_checkpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss",filename="best_model")
+        model_checkpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", filename="best_model")
         callbacks.append(model_checkpoint)
-    
+
     # Trainer
     trainer = pl.Trainer(
+        logger=wandb_logger,  # WandbLogger integration
         max_epochs=num_epochs,
         # gpus=1 if torch.cuda.is_available() else None,
         callbacks=callbacks,
-        logger=True,  # Default logger prints to console
-        enable_progress_bar=True  # Show training progress in the terminal
+        enable_progress_bar=True,  # Show training progress in the terminal
     )
 
-
     # Train the model
-    trainer.fit(model=model, 
-                datamodule=DataLoader(dataset.dataset, batch_size=1, shuffle=True)),
-                #datamodule=DataLoader(dataset, batch_size=batch_size, shuffle=True))
-    
-    # Save the model 
+    (trainer.fit(model=model, datamodule=DataLoader(dataset.dataset, batch_size=1, shuffle=True)),)
+    # datamodule=DataLoader(dataset, batch_size=batch_size, shuffle=True))
+
+    # Save the model
     torch.save(model.state_dict(), "model.pt")
-    # save to wandb and gcloud?
+
+    # Finish Wandb run
+    wandb.finish()
 
 
 def train_node_classifier(model_name, dataset, **model_kwargs):
@@ -90,6 +122,7 @@ def train_node_classifier(model_name, dataset, **model_kwargs):
     result = {"train": train_acc, "val": val_acc, "test": test_result[0]["test_acc"]}
     return model, result
 
+
 # Small function for printing the test scores
 def print_results(result_dict):
     if "train" in result_dict:
@@ -98,24 +131,25 @@ def print_results(result_dict):
         print("Val accuracy:   %4.2f%%" % (100.0 * result_dict["val"]))
     print("Test accuracy:  %4.2f%%" % (100.0 * result_dict["test"]))
 
+
 if __name__ == "__main__":
     data = WikiCS(root="data/")
-    
+
     if data.train_mask.dim() == 2:
         data.train_mask = data.train_mask[:, 0]
     if data.val_mask.dim() == 2:
         data.val_mask = data.val_mask[:, 0]
     if data.test_mask.dim() == 2:
         data.test_mask = data.test_mask[:, 0]
-    
+
     node_mlp_model, node_mlp_result = train_node_classifier(
-    model_name="MLP",
-    dataset=data,
-    c_in=data.num_node_features,
-    c_hidden=16,
-    c_out=data.y.max().item() + 1,
-    num_layers=2,
-    dp_rate=0.1
+        model_name="MLP",
+        dataset=data,
+        c_in=data.num_node_features,
+        c_hidden=16,
+        c_out=data.y.max().item() + 1,
+        num_layers=2,
+        dp_rate=0.1,
     )
 
     print_results(node_mlp_result)
