@@ -6,6 +6,10 @@ manual_test/
 # data 
 data/*
 
+# logging
+wandb/*
+logs/*
+
 # other local dev info
 .vscode/
 
@@ -141,6 +145,7 @@ celerybeat.pid
 
 # Environments
 .env
+load_from_env.py
 .venv
 env/
 venv/
