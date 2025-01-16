@@ -8,3 +8,20 @@ repos:
     -   id: end-of-file-fixer
     -   id: check-yaml
     -   id: check-added-large-files
+-   repo: local
+    hooks:
+    -   id: add-uv-lock
+        name: Add requirement files
+        entry: git add uv.lock
+        language: system
+        always_run: true
+    -   id: add-pyproject
+        name: Add requirement files
+        entry: git add pyproject.toml
+        language: system
+        always_run: true
+    -   id: check-uv-pip-freeze
+        name: Check UV and make reqs
+        entry: bash uv-package-check.sh
+        language: system
+        always_run: true
