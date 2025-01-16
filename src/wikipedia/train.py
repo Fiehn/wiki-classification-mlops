@@ -3,13 +3,13 @@ import torch.nn.functional as F
 import pytorch_lightning as pl
 import typer
 import torch_geometric.transforms as T
-from torch_geometric.data import DataLoader
 
 from data import WikiDataset
-from model import GCN
-import logger
-from pathlib import Path
+from torch_geometric.loader import DataLoader
 
+from model import GNNModel
+from model import NodeLevelGNN
+from torch_geometric.datasets import WikiCS
 
 app = typer.Typer()
 
@@ -56,13 +56,66 @@ def train(
 
     # Train the model
     trainer.fit(model=model, 
-                train_dataloaders=DataLoader(dataset, batch_size=batch_size, shuffle=True),
-                val_dataloaders=DataLoader(dataset, batch_size=batch_size, shuffle=False))
+                datamodule=DataLoader(dataset.dataset, batch_size=1, shuffle=True)),
                 #datamodule=DataLoader(dataset, batch_size=batch_size, shuffle=True))
     
     # Save the model 
     torch.save(model.state_dict(), "model.pt")
     # save to wandb and gcloud?
 
+
+def train_node_classifier(model_name, dataset, **model_kwargs):
+    pl.seed_everything(42)
+    node_data_loader = DataLoader(dataset, batch_size=1)
+
+    # Create a PyTorch Lightning trainer
+    root_dir = "logs/"
+    trainer = pl.Trainer(
+        default_root_dir=root_dir,
+        accelerator="auto",
+        max_epochs=200,
+        enable_progress_bar=False,
+    )  # 0 because epoch size is 1
+    trainer.logger._default_hp_metric = None  # Optional logging argument that we don't need
+
+    # Check whether pretrained model exists. If yes, load it and skip training
+    model = NodeLevelGNN(model_name, **model_kwargs)
+
+    # Test best model on the test set
+    test_result = trainer.test(model, dataloaders=node_data_loader, verbose=False)
+    batch = next(iter(node_data_loader))
+    batch = batch.to(model.device)
+    _, train_acc = model.forward(batch, mode="train")
+    _, val_acc = model.forward(batch, mode="val")
+    result = {"train": train_acc, "val": val_acc, "test": test_result[0]["test_acc"]}
+    return model, result
+
+# Small function for printing the test scores
+def print_results(result_dict):
+    if "train" in result_dict:
+        print("Train accuracy: %4.2f%%" % (100.0 * result_dict["train"]))
+    if "val" in result_dict:
+        print("Val accuracy:   %4.2f%%" % (100.0 * result_dict["val"]))
+    print("Test accuracy:  %4.2f%%" % (100.0 * result_dict["test"]))
+
 if __name__ == "__main__":
-    app()
+    data = WikiCS(root="data/")
+    
+    if data.train_mask.dim() == 2:
+        data.train_mask = data.train_mask[:, 0]
+    if data.val_mask.dim() == 2:
+        data.val_mask = data.val_mask[:, 0]
+    if data.test_mask.dim() == 2:
+        data.test_mask = data.test_mask[:, 0]
+    
+    node_mlp_model, node_mlp_result = train_node_classifier(
+    model_name="MLP",
+    dataset=data,
+    c_in=data.num_node_features,
+    c_hidden=16,
+    c_out=data.y.max().item() + 1,
+    num_layers=2,
+    dp_rate=0.1
+    )
+
+    print_results(node_mlp_result)

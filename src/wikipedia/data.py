@@ -1,11 +1,12 @@
 from torch_geometric.datasets import WikiCS
 from torch_geometric.transforms import NormalizeFeatures
 from torch_geometric.data import Data
-from torch_geometric.loader import DataLoader
 import torch
-import torch_geometric
 import typer
 import os
+from torch_geometric.data.lightning import LightningDataset
+
+
 
 # Downloaded from: https://github.com/pmernyei/wiki-cs-dataset
 # Using: https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/datasets/wikics.html#WikiCS
@@ -97,8 +98,42 @@ class WikiDataset():
         return data
 
     def data_loader(self, batch_size: int = 32):
-        """ Dataloader for the full dataset. """
-        return DataLoader(self.dataset, batch_size=batch_size, shuffle=True)
+        """ This will split the data into train, validation and test dataloaders with the torch_geometric.lightning.LightningDataset."""
+        train_dataset = self.create_subgraph(self.dataset, self.dataset.train_mask)
+        val_dataset = self.create_subgraph(self.dataset, self.dataset.val_mask)
+        test_dataset = self.create_subgraph(self.dataset, self.dataset.test_mask)
+        return LightningDataset(train_dataset, val_dataset, test_dataset, batch_size=batch_size)
+
+    @staticmethod
+    def create_subgraph(data, mask):
+        # Extract nodes that are True in the mask
+        node_indices = mask.nonzero(as_tuple=True)[0]
+
+        # Map original indices to subgraph indices
+        subgraph_x = data.x[node_indices]
+        subgraph_y = data.y[node_indices]
+        subgraph_train_mask = data.train_mask[node_indices]
+        subgraph_val_mask = data.val_mask[node_indices]
+        subgraph_test_mask = data.test_mask[node_indices]
+
+        # Filter edges where both nodes are in the subgraph
+        edge_mask = torch.isin(data.edge_index[0], node_indices) & torch.isin(data.edge_index[1], node_indices)
+        subgraph_edge_index = data.edge_index[:, edge_mask]
+
+        # Remap edge indices to be zero-indexed
+        index_map = {old_idx: new_idx for new_idx, old_idx in enumerate(node_indices.tolist())}
+        subgraph_edge_index = subgraph_edge_index.apply_(lambda idx: index_map[idx])
+
+        # Create the new subgraph Data object
+        subgraph = Data(
+            x=subgraph_x,
+            edge_index=subgraph_edge_index,
+            y=subgraph_y,
+            train_mask=subgraph_train_mask,
+            val_mask=subgraph_val_mask,
+            test_mask=subgraph_test_mask
+        )
+        return subgraph
 
     def train_mask(self):
         # This collapses the split dimensions from the paper
@@ -111,4 +146,5 @@ class WikiDataset():
 
 if __name__ == "__main__":
     da = WikiDataset()
+    print(da.data_loader())
     

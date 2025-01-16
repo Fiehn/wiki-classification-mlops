@@ -1,0 +1,6 @@
+model_name: MLP
+c_in: 300
+c_hidden: 16
+c_out: 10
+num_layers: 2
+dp_rate: 0.1
