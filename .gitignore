@@ -185,3 +185,5 @@ cython_debug/
 #.idea/
 
 wandb
+wiki_classification
+lightning_logs

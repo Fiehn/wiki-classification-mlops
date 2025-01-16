@@ -63,7 +63,7 @@ class GNNModel(nn.Module):
 
 # Simple Graph Convolutional Network (GCN) model using PyTorch Geometric. 
 class NodeLevelGNN(pl.LightningModule):
-    def __init__(self, model_name, **model_kwargs):
+    def __init__(self, **model_kwargs):
         super().__init__()
         # Saving hyperparameters
         self.save_hyperparameters()
@@ -97,9 +97,10 @@ class NodeLevelGNN(pl.LightningModule):
         acc = (x[mask].argmax(dim=-1) == data.y[mask]).sum().float() / mask.sum()
         return loss, acc
 
-    def configure_optimizers(self):
+    def configure_optimizers(self, lr=0.01):
         # We use SGD here, but Adam works as well
-        optimizer = optim.SGD(self.parameters(), lr=0.1, momentum=0.9, weight_decay=2e-3)
+        optimizer = optim.Adam(self.parameters(), lr=lr)
+        #optimizer = optim.SGD(self.parameters(), lr=lr, momentum=0.9, weight_decay=2e-3)
         return optimizer
 
     def training_step(self, batch, batch_idx):
