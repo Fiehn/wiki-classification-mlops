@@ -2,6 +2,7 @@ from src.wikipedia.data import WikiDataset
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 
+
 def test_dataset_class():
     """Test the WikiDataset class."""
     dataset = WikiDataset()
@@ -24,4 +25,5 @@ def test_data_loaders():
     #assert isinstance(val_loader, DataLoader), "Val loader should be an instance of the DataLoader class"
     assert len(train_loader) == 1, "Length of the train loader should be 1"
     #assert len(val_loader) == 1, "Length of the val loader should be 1"
+
 
