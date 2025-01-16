@@ -3,6 +3,7 @@ from torch_geometric.transforms import NormalizeFeatures
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
 import torch
+import torch_geometric
 import typer
 import os
 
@@ -35,14 +36,18 @@ class WikiDataset():
         self.dataset.train_mask = self.train_mask()
         self.dataset.val_mask = self.val_mask()
         self.dataset.test_mask = self.test_mask()
+        self.num_features = self.dataset.x.shape[1] 
+        self.num_classes = self.dataset.y.max().item() + 1
 
     def __len__(self):
         """ Returns the length of the dataset. """
         return len(self.dataset)
-
+    
     def __getitem__(self, idx):
-        """ Returns the item at the index. """
-        return self.dataset[idx]
+        """Return the entire dataset as indexing is not supported."""
+        if idx != 0:
+            raise IndexError("This dataset contains only one graph. Index must be 0.")
+        return self.dataset
     
     @staticmethod
     def download_data(self):
@@ -77,7 +82,7 @@ class WikiDataset():
         It then becomes a python dict, we want a PyG Data object.
         Returns: PyG Data object with the data.
         """
-        loaded_tuple = torch.load("data/processed/data_undirected.pt",weights_only=True)
+        loaded_tuple = torch.load("data/processed/data_undirected.pt") #,weights_only=True)
         # Assume it's something like (data_object, None)
         if isinstance(loaded_tuple, tuple):
             data = loaded_tuple[0]  # The PyG Data-like object

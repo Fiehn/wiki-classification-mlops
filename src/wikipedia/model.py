@@ -84,11 +84,11 @@ class GCN(pl.LightningModule):
         self.log("val_loss", loss, prog_bar=True)
         self.log("val_acc", acc, prog_bar=True)
 
-    def configure_optimizers(self):
+    def configure_optimizers(self, lr=0.01):
         """
         Configure the optimizer for training.
         """
-        return torch.optim.Adam(self.parameters(), lr=0.01)
+        return torch.optim.Adam(self.parameters(), lr=lr)
 
     def predict(self, x: torch.Tensor, edge_index: torch.Tensor) -> torch.Tensor:
         """

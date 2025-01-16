@@ -4,6 +4,7 @@ import pytorch_lightning as pl
 import typer
 import torch_geometric.transforms as T
 from torch_geometric.data import DataLoader
+
 from data import WikiDataset
 from model import GCN
 import logger
@@ -12,6 +13,7 @@ from pathlib import Path
 
 app = typer.Typer()
 
+@app.command()
 def train(
     #data_path: str = typer.Argument(..., help="Path to the data"),
     hidden_channels: int = typer.Option(16, help="Number of hidden channels"),
@@ -45,7 +47,7 @@ def train(
     # Trainer
     trainer = pl.Trainer(
         max_epochs=num_epochs,
-        gpus=1 if torch.cuda.is_available() else None,
+        # gpus=1 if torch.cuda.is_available() else None,
         callbacks=callbacks,
         logger=True,  # Default logger prints to console
         enable_progress_bar=True  # Show training progress in the terminal
@@ -54,9 +56,13 @@ def train(
 
     # Train the model
     trainer.fit(model=model, 
-                datamodule=DataLoader(dataset, batch_size=batch_size, shuffle=True))
+                train_dataloaders=DataLoader(dataset, batch_size=batch_size, shuffle=True),
+                val_dataloaders=DataLoader(dataset, batch_size=batch_size, shuffle=False))
+                #datamodule=DataLoader(dataset, batch_size=batch_size, shuffle=True))
     
     # Save the model 
     torch.save(model.state_dict(), "model.pt")
     # save to wandb and gcloud?
-    
+
+if __name__ == "__main__":
+    app()
