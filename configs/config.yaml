@@ -1,0 +1,9 @@
+# config.yaml
+hyperparamters:
+  hidden-channels: 16 
+  dropout: 0.5 
+  lr: 0.01 
+  num-epochs: 100 
+  batch-size: 32 
+  early-stopping: 
+  model-checkpoint:
