@@ -1,150 +1,16 @@
 from torch_geometric.datasets import WikiCS
 from torch_geometric.transforms import NormalizeFeatures
-from torch_geometric.data import Data
-import torch
-import typer
-import os
-from torch_geometric.data.lightning import LightningDataset
-
-
 
 # Downloaded from: https://github.com/pmernyei/wiki-cs-dataset
 # Using: https://pytorch-geometric.readthedocs.io/en/latest/_modules/torch_geometric/datasets/wikics.html#WikiCS
 
-class WikiDataset():
-    """ Wiki dataset class. 
-    Can download, generate and load the data.
-    Can also return dataloaders for training, validation and testing.
-    """
-    def __init__(self) -> None:
-        """
-        Initialize the dataset. Downloads the data to the path if it does not exist.
-        Creates raw and processed data folders itself so give it "data/"
-        Then saves a PyG Data object in the dataset attribute.
-        Args:
-            data_path (str): Path to the data
-            generate_data (bool): Whether to generate the data from torch_geometric.datasets.WikiCS
-        """
-        
-        # Check if the data exists
-        if not os.path.exists("data/processed/data_undirected.pt"):
-            print("Data does not exist. Downloading...")
-            self.get_data()
-            
-        self.load_data()
-        self.dataset = self.load_data()
+def load_data():
+    dataset = WikiCS(root="data/")
+    # collapse the masks into a single mask
+    dataset.data.train_mask = dataset.data.train_mask.sum(dim=1).bool()
+    dataset.data.val_mask = dataset.data.val_mask.sum(dim=1).bool()
+    return dataset
 
-        self.dataset.train_mask = self.train_mask()
-        self.dataset.val_mask = self.val_mask()
-        self.dataset.test_mask = self.test_mask()
-        self.num_features = self.dataset.x.shape[1] 
-        self.num_classes = self.dataset.y.max().item() + 1
-
-    def __len__(self):
-        """ Returns the length of the dataset. """
-        return len(self.dataset)
-    
-    def __getitem__(self, idx):
-        """Return the entire dataset as indexing is not supported."""
-        if idx != 0:
-            raise IndexError("This dataset contains only one graph. Index must be 0.")
-        return self.dataset
-    
-    @staticmethod
-    def download_data(self):
-        """ Downloads the data to the path. """
-        WikiCS(self.data_path)
-        print("Data downloaded.")
-    
-    @staticmethod
-    def get_data(normalize_bool: bool = False) -> None:
-        """
-        Pytorch Geometric has an inbuilt function for the WikiCS dataset.
-        This function downloads the raw data and then it is possible to process it.
-        There are some transformations that can be applied to the data.    
-        Args:
-            data_path (str): Path to the data
-            normalize_bool (bool): Whether to normalize
-        """
-        # Ensure the output folder exists
-        transform = NormalizeFeatures() if normalize_bool else None
-        
-        data = WikiCS(root="data/", transform=transform)
-
-        data.process()
-
-        print("Data preprocessing complete.")
-
-    def load_data(self):
-        """
-        The data is loaded from the path.
-        Saving the data in get_data gives a tuple with (true_data, None). 
-        This is wrong so we take the data from the tuple.
-        It then becomes a python dict, we want a PyG Data object.
-        Returns: PyG Data object with the data.
-        """
-        loaded_tuple = torch.load("data/processed/data_undirected.pt") #,weights_only=True)
-        # Assume it's something like (data_object, None)
-        if isinstance(loaded_tuple, tuple):
-            data = loaded_tuple[0]  # The PyG Data-like object
-        else:
-            data = loaded_tuple
-
-
-        # Make sure it's a PyG Data object
-        if not isinstance(data, Data):
-            data = Data(**data._asdict()) if hasattr(data, "_asdict") else Data(**dict(data))
-
-        return data
-
-    def data_loader(self, batch_size: int = 32):
-        """ This will split the data into train, validation and test dataloaders with the torch_geometric.lightning.LightningDataset."""
-        train_dataset = self.create_subgraph(self.dataset, self.dataset.train_mask)
-        val_dataset = self.create_subgraph(self.dataset, self.dataset.val_mask)
-        test_dataset = self.create_subgraph(self.dataset, self.dataset.test_mask)
-        return LightningDataset(train_dataset, val_dataset, test_dataset, batch_size=batch_size)
-
-    @staticmethod
-    def create_subgraph(data, mask):
-        # Extract nodes that are True in the mask
-        node_indices = mask.nonzero(as_tuple=True)[0]
-
-        # Map original indices to subgraph indices
-        subgraph_x = data.x[node_indices]
-        subgraph_y = data.y[node_indices]
-        subgraph_train_mask = data.train_mask[node_indices]
-        subgraph_val_mask = data.val_mask[node_indices]
-        subgraph_test_mask = data.test_mask[node_indices]
-
-        # Filter edges where both nodes are in the subgraph
-        edge_mask = torch.isin(data.edge_index[0], node_indices) & torch.isin(data.edge_index[1], node_indices)
-        subgraph_edge_index = data.edge_index[:, edge_mask]
-
-        # Remap edge indices to be zero-indexed
-        index_map = {old_idx: new_idx for new_idx, old_idx in enumerate(node_indices.tolist())}
-        subgraph_edge_index = subgraph_edge_index.apply_(lambda idx: index_map[idx])
-
-        # Create the new subgraph Data object
-        subgraph = Data(
-            x=subgraph_x,
-            edge_index=subgraph_edge_index,
-            y=subgraph_y,
-            train_mask=subgraph_train_mask,
-            val_mask=subgraph_val_mask,
-            test_mask=subgraph_test_mask
-        )
-        return subgraph
-
-    def train_mask(self):
-        # This collapses the split dimensions from the paper
-        # should IDEALLY NOT be used in practice
-        return self.dataset.train_mask.sum(dim=1).bool()
-    def val_mask(self):
-        return self.dataset.val_mask.sum(dim=1).bool()
-    def test_mask(self):
-        return self.dataset.test_mask.bool()
-
-if __name__ == "__main__":
-    da = WikiDataset()
-    print(da.data_loader())
-    
+def load_split_data():
+    dataset = WikiCS(root="data/")
+    return dataset

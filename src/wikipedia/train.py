@@ -4,7 +4,7 @@ import pytorch_lightning as pl
 import typer
 import torch_geometric.transforms as T
 
-from data import WikiDataset
+from data import load_data
 from torch_geometric.loader import DataLoader
 
 from model import GNNModel
@@ -133,7 +133,7 @@ def print_results(result_dict):
 
 
 if __name__ == "__main__":
-    data = WikiCS(root="data/")
+    data = load_data()
 
     # if data.train_mask.dim() == 2:
     #     data.train_mask = data.train_mask[:, 0]
