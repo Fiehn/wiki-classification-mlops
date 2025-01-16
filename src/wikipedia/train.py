@@ -133,7 +133,7 @@ def print_results(result_dict):
 
 
 if __name__ == "__main__":
-    data = load_data()
+    data = WikiCS(root="data/")
 
     # if data.train_mask.dim() == 2:
     #     data.train_mask = data.train_mask[:, 0]

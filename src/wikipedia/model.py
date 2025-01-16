@@ -86,8 +86,8 @@ class NodeLevelGNN(pl.LightningModule):
             assert False, f"Unknown forward mode: {mode}"
 
         # Convert 2D mask to 1D if needed
-        # if mask.dim() == 2:
-        #     mask = mask[:, 0]  # Take first split
+        if mask.dim() == 2:
+            mask = mask[:, 0]  # Take first split
 
         # Shape checks for debugging
         # assert mask.dim() == 1, f"Mask should be 1D, got shape {mask.shape}"
