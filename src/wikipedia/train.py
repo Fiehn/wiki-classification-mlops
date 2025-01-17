@@ -1,22 +1,14 @@
 import torch
-import torch.nn.functional as F
 import pytorch_lightning as pl
-import typer
-import torch_geometric.transforms as T
-
-#from data import WikiDataset
-#from data import WikiDataModule
 from torch_geometric.loader import DataLoader
+import typer
 
 from model import NodeLevelGNN
-
 from data import load_data, load_split_data
 
 # Logging
 import wandb
 from pytorch_lightning.loggers import WandbLogger
-
-
 
 app = typer.Typer()
 
@@ -74,7 +66,7 @@ def train(
         max_epochs=num_epochs,
         accelerator="auto",
         callbacks=callbacks,
-        enable_progress_bar=False,  # Show training progress in the terminal
+        enable_progress_bar=True,  # Show training progress in the terminal
         log_every_n_steps=1,
     )
 
