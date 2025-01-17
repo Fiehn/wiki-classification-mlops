@@ -187,4 +187,4 @@ cython_debug/
 wandb
 wiki_classification
 lightning_logs
-models
+models/model.pt

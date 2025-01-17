@@ -1,7 +1,5 @@
-import torch
-import torch.nn.functional as F
 from torch import nn
-from torch_geometric.nn import GCNConv  # type: ignore
+from torch_geometric.nn import GCNConv
 import pytorch_lightning as pl
 from torch_geometric import nn as geom_nn
 import torch.optim as optim
@@ -31,13 +29,17 @@ class GNNModel(nn.Module):
         super().__init__()
         gnn_layer = GCNConv
 
+
         layers = []
         in_channels, out_channels = c_in, c_hidden
         for l_idx in range(num_layers - 1):
             layers += [
                 gnn_layer(in_channels=in_channels, out_channels=out_channels, **kwargs),
                 nn.ReLU(inplace=True),
+                #nn.Linear(out_channels, c_hidden),
+                #nn.ReLU(inplace=True),
                 nn.Dropout(dp_rate),
+                #nn.BatchNorm1d(out_channels),
             ]
             in_channels = c_hidden
         layers += [gnn_layer(in_channels=in_channels, out_channels=c_out, **kwargs)]
