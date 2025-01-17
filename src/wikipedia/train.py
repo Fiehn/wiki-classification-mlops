@@ -30,7 +30,6 @@ def train(
     num_epochs: int = typer.Option(100, help="Number of epochs"),
     batch_size: int = typer.Option(32, help="Batch size"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
-    
 ) -> None:
     
     # Initialize WandbLogger
@@ -73,9 +72,9 @@ def train(
     trainer = pl.Trainer(
         logger=wandb_logger,  # WandbLogger integration
         max_epochs=num_epochs,
-        # gpus=1 if torch.cuda.is_available() else None,
+        accelerator="auto",
         callbacks=callbacks,
-        enable_progress_bar=True,  # Show training progress in the terminal
+        enable_progress_bar=False,  # Show training progress in the terminal
     )
 
     node_data_loader = DataLoader(data_module, batch_size=32)
