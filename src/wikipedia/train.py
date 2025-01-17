@@ -8,11 +8,9 @@ import torch_geometric.transforms as T
 #from data import WikiDataModule
 from torch_geometric.loader import DataLoader
 
-from model import GNNModel
 from model import NodeLevelGNN
-from torch_geometric.datasets import WikiCS
 
-from data import load_data
+from data import load_data, load_split_data
 
 # Logging
 import wandb
@@ -31,8 +29,7 @@ def train(
     lr: float = typer.Option(0.01, help="Learning rate"),
     num_epochs: int = typer.Option(100, help="Number of epochs"),
     batch_size: int = typer.Option(32, help="Batch size"),
-    early_stopping_callback: bool = typer.Option(False, help="Whether to use early stopping"),
-    model_checkpoint_callback: bool = typer.Option(False, help="Whether to use model checkpointing"),
+    model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
     
 ) -> None:
     
@@ -46,9 +43,6 @@ def train(
             "lr": lr,
             "num_epochs": num_epochs,
             "batch_size": batch_size,
-            "early_stopping_callback": early_stopping_callback,
-            "model_checkpoint_callback": model_checkpoint_callback,
-            
         },
     )
     wandb_logger.experiment.log({"test_log": "Wandb is active!"})
@@ -68,11 +62,11 @@ def train(
 
     callbacks = []
     # Callbacks for early stopping and model checkpointing
-    if early_stopping_callback:
-        early_stopping = pl.callbacks.EarlyStopping(patience=5, monitor="val_loss")
-        callbacks.append(early_stopping)
     if model_checkpoint_callback:
-        model_checkpoint = pl.callbacks.ModelCheckpoint(monitor="val_loss", filename="best_model")
+        model_checkpoint = pl.callbacks.ModelCheckpoint(save_weights_only=True, 
+                                                        mode="max", 
+                                                        monitor="val_acc", 
+                                                        filename="models/current_best_model")
         callbacks.append(model_checkpoint)
 
     # Trainer
