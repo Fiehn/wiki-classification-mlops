@@ -12,5 +12,5 @@ def load_data():
     return dataset
 
 def load_split_data():
-    dataset = WikiCS(root="data/")
+    dataset = WikiCS(root="data/", is_undirected=True)
     return dataset

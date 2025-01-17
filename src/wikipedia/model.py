@@ -120,7 +120,11 @@ class NodeLevelGNN(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         _, acc = self.forward(batch, mode="test")
         self.log("test_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
-
+        
+    def predict(self, batch):
+        x, edge_index = batch.x, batch.edge_index
+        return self.model(x, edge_index)
+    
 if __name__ == "__main__":
     #model = GCN(hidden_channels=16, num_features=300, num_classes=10, dropout=0.5)
     #print(model)
