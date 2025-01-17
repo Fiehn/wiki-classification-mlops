@@ -7,8 +7,8 @@ from torch_geometric.transforms import NormalizeFeatures
 def load_data():
     dataset = WikiCS(root="data/", is_undirected=True)
     # collapse the masks into a single mask
-    dataset.data.train_mask = dataset.data.train_mask.sum(dim=1).bool()
-    dataset.data.val_mask = dataset.data.val_mask.sum(dim=1).bool()
+    dataset.train_mask = dataset.train_mask.sum(dim=1).bool()
+    dataset.val_mask = dataset.val_mask.sum(dim=1).bool()
     return dataset
 
 def load_split_data():

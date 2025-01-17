@@ -75,14 +75,30 @@ def train(
         accelerator="auto",
         callbacks=callbacks,
         enable_progress_bar=False,  # Show training progress in the terminal
+        log_every_n_steps=1,
     )
 
-    node_data_loader = DataLoader(data_module, batch_size=32)
+    node_data_loader = DataLoader(data_module,batch_size=batch_size, num_workers=7)
     # Train the model
     trainer.fit(model, node_data_loader, node_data_loader)
- 
+    
+    # Testing the model in the train loop
+    trainer.test(model, node_data_loader)
     # Save the model
     torch.save(model.state_dict(), "models/model.pt")
+    
+    # Save the model as a W&B artifact
+    artifact = wandb.Artifact('model', type='model', metadata=dict({
+            "Accuracies": trainer.callback_metrics,
+            "hidden_channels": hidden_channels,
+            "hidden_layers": hidden_layers,
+            "dropout": dropout,
+            "lr": lr,
+            "num_epochs": num_epochs,
+            "batch_size": batch_size,
+        }))
+    artifact.add_file('models/model.pt')
+    wandb.log_artifact(artifact, aliases=["latest_model"])
 
     # Finish Wandb run
     wandb.finish()
