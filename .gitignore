@@ -188,3 +188,8 @@ wandb
 wiki_classification
 lightning_logs
 models/model.pt
+
+
+/config.local
+/tmp
+/cache
