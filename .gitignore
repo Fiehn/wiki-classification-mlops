@@ -188,3 +188,11 @@ wandb
 wiki_classification
 lightning_logs
 models/model.pt
+
+
+/config.local
+/tmp
+/cache
+
+# ignore dtumlops-448012-37e77e52cd8f.json (GCP service account key)
+dtumlops-448012-37e77e52cd8f.json
