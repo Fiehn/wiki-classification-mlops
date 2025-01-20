@@ -19,7 +19,7 @@ steps:
 options:
   logging: CLOUD_LOGGING_ONLY
 serviceAccount: 'projects/$PROJECT_ID/serviceAccounts/mlops-proj-group3-build-servic@dtumlops-448012.iam.gserviceaccount.com'
-secretEnv: ['WANDB_API_KEY']
+# secretEnv: ['WANDB_API_KEY']
 
 availableSecrets:
   secretManager:
