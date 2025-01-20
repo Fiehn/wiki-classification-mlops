@@ -10,15 +10,21 @@ steps:
     '-f',
     'dockerfiles/train.dockerfile'
   ]  
+  env: 
+    - 'PROJECT_ID=$PROJECT_ID'
+    - 'WANDB_API_KEY=$WANDB_API_KEY'
+
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Push container image'
   args: [
     'push',
     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/train-image'
   ]
+
 options:
   logging: CLOUD_LOGGING_ONLY
 serviceAccount: 'projects/$PROJECT_ID/serviceAccounts/mlops-proj-group3-build-servic@dtumlops-448012.iam.gserviceaccount.com'
+
 # secretEnv: ['WANDB_API_KEY']
 
 availableSecrets:
