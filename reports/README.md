@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
-s204617, --- question 2 fill here ---
+s204617, s204623, s204070, s204605, 
 
 ### Question 3
 > **A requirement to the project is that you include a third-party package not covered in the course. What framework**
@@ -278,7 +278,8 @@ We heavily relied on branches for feature development. Creating a new branch for
 >
 > Answer:
 
---- question 11 fill here ---
+For continuoues integration we have made 3 tests, which respectively tests the data structure, our model and the training of our model. The three tests are all included in the 'tests' folder. As the group members are using different operating systems and versions of python, we have set up the tests such that they run for both "ubuntu-latest" and "macos-latest", as well as two versions of python. This is reflected in the .github/workflows/tests.yaml file. 
+To enforce good coding practices we have utilised ruff in our pre-commit. 
 
 ## Running code and tracking experiments
 
@@ -347,7 +348,9 @@ But the majority of hyperparameter tuning and testing later in the project was d
 >
 > Answer:
 
---- question 15 fill here ---
+For our project, we have developed two images, one for training and one for testing. These images are built on GCP, ensuring portability and scalability. A link to one of our Docker builds is provided below. We set up a Compute Engine instance for training our model, which is connected to our Dockerfile. This approach simplifies our workflow by avoiding the need to manually configure the environment on different machines. Instead, the container ensures consistency across deployments by packaging all dependencies, libraries, and code.
+
+https://console.cloud.google.com/cloud-build/builds;region=europe-west1/ff50dbae-b86c-40ef-9d77-76d7d7be6585?inv=1&invt=AbnWdw&project=dtumlops-448012 
 
 ### Question 16
 
@@ -379,7 +382,11 @@ But the majority of hyperparameter tuning and testing later in the project was d
 >
 > Answer:
 
---- question 17 fill here ---
+For the project, we have used the following GCP services:
+* Bucket: is used as our cloud storage solution. Both our raw and proceseed data is therefore found in the bucket: mlops-proj-group3-bucket/torch_geometric_data
+* Artifact: is used for centralising and managing our repository, e.g. our docker images: europe-west1-docker.pkg.dev/dtumlops-448012/mlops-proj-group3-artifact
+* Compute engine: 
+
 
 ### Question 18
 
