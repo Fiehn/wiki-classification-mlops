@@ -1,0 +1,27 @@
+
+# replact: 
+# - <image-name> with the name of the image you want to build
+# - <path-to-dockerfile> with the path to the Dockerfile
+
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/<image-name>',
+    '-f',
+    '<path-to-dockerfile>'
+  ]
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/<image-name>'
+  ]
+options:
+  logging: CLOUD_LOGGING_ONLY
+
+
+# trigger image build with writing this in the terminal: gcloud builds submit --config=cloudbuild.yaml .
