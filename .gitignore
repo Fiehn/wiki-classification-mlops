@@ -194,5 +194,6 @@ models/model.pt
 /tmp
 /cache
 
-# ignore dtumlops-448012-37e77e52cd8f.json (GCP service account key)
+# ignore GCP service account keys
 dtumlops-448012-37e77e52cd8f.json
+dtumlops-448012-f2134e26466c.json
