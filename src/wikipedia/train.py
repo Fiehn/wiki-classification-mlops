@@ -129,6 +129,7 @@ def train(
 if __name__ == "__main__":
     app()
 
+# Run in terminal: python src/wikipedia/train.py mlops-proj-group3-bucket torch_geometric_data
 
 
 
