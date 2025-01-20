@@ -26,5 +26,5 @@ availableSecrets:
   - versionName: "projects/$PROJECT_ID/secrets/WANDB_API_KEY/versions/latest"
     env: "WANDB_API_KEY"
 
-# trigger image build with writing this in the terminal: gcloud builds submit --config=cloudbuild.yaml .
+# Trigger image build with writing this in the terminal: gcloud builds submit --config=cloudbuild.yaml .
 # Authenticate access with service account: gcloud auth activate-service-account --key-file=cloud/dtumlops-448012-f2134e26466c.json 
