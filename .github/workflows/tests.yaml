@@ -45,3 +45,6 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+
+      - name: Check data statistics
+        run: uv run src/wikipedia/dataset_statistics.py
