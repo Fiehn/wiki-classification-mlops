@@ -9,7 +9,7 @@ steps:
     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/train-image',
     '-f',
     'dockerfiles/train.dockerfile'
-  ]
+  ]  
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Push container image'
   args: [
