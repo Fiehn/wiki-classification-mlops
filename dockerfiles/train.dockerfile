@@ -20,9 +20,15 @@ RUN mkdir -p /app/src && \
     mkdir -p /app/logs && \
     mkdir -p /app/reports
 
+ENV WANDB_API_KEY=$WANDB_API_KEY
+
 WORKDIR /app
 
 RUN pip install uv && \
+    pip install wandb && \
+    # export WANDB_API_KEY=$WANDB_API_KEY && \
+    # wandb login $WANDB_API_KEY && \
     uv sync
+    
 
 ENTRYPOINT ["uv", "run", "src/wikipedia/train.py"]
