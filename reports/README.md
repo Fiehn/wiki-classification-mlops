@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
-s204617, s204623, s204070, s204605, 
+s204617, s204623, s204070, s204605, s194645
 
 ### Question 3
 > **A requirement to the project is that you include a third-party package not covered in the course. What framework**
@@ -301,7 +301,7 @@ To enforce good coding practices we have utilised ruff in our pre-commit.
 We initially tested manually with Typer and Invoke
 > invoke train --lr 0.001 ...
 
-But the majority of hyperparameter tuning and testing later in the project was done using Weights and Biases sweep file.
+But the majority of hyperparameter tuning and testing later in the project was done using Weights and Biases sweep.yaml file.
 
 ### Question 13
 
@@ -333,7 +333,9 @@ But the majority of hyperparameter tuning and testing later in the project was d
 >
 > Answer:
 
---- question 14 fill here ---
+**INSERT PICTURES** 
+We have used W&B in our project for hyperparameter tuning using a sweep.yaml file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the 
+test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
 
 ### Question 15
 
@@ -572,7 +574,8 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 30 fill here ---
+During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud.
+XXXXX 
 
 ### Question 31
 
@@ -590,4 +593,13 @@ For the project, we have used the following GCP services:
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+FEEL FREE TO CHANGE, NOT SURE AT ALL ABOUT THE SPLIT!!!
+
+Student s204617 and s204623 was in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
+Student s204617 has been in charge of setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
+Student s204617 and s204070 have taken the lead on building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students.
+Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test).
+Student s204617 has been in charge of GCP. 
+Student s194645 has been in charge of API
+
+All members have contributed to the project and writing the report. Overall it has been a collaborative process making the project.
