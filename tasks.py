@@ -70,10 +70,11 @@ def sweep(ctx: Context) -> None:
     ctx.run(f"wandb agent {sweep_id}", echo=True, pty=not WINDOWS)
 
 # "\\wsl.localhost\Ubuntu\home\fenriswulven\project\wiki-classification-mlops\checkpoints\split_0\best_model-epoch=195-val_acc=0.8219-v4.ckpt"
+## test with best model
 @task 
 def test2(ctx: Context) -> None:
     """Test model on test set."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/test.py checkpoints/split_0/best_model-epoch=195-val_acc=0.8219-v4.ckpt", echo=True, pty=not WINDOWS)
+    ctx.run(f"uv run src/{PROJECT_NAME}/test.py models/best_model-epoch=195-val_acc=0.8219-v4.ckpt", echo=True, pty=not WINDOWS)
 
 @task
 def test(ctx: Context) -> None:

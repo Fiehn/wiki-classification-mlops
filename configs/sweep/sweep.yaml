@@ -13,7 +13,7 @@ parameters:
     optimizer-name:
       values: ['Adam', 'AdamW', 'NAdam', 'RMSprop']
     num-epochs:
-        values: [100, 200]
+        values: [300]
     weight-decay:
         values: [0.0001]
     dropout:

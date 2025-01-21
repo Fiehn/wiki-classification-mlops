@@ -187,8 +187,9 @@ cython_debug/
 wandb
 wiki_classification
 lightning_logs
-models/model.pt
+models
 checkpoints/
+
 
 /config.local
 /tmp
