@@ -48,12 +48,22 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
 
     blobs = bucket.list_blobs(prefix=source_folder)
     for blob in blobs:
-        if not blob.name.endswith("/"):  # Skip directories
-            file_path = os.path.join(destination_folder, os.path.relpath(blob.name, source_folder))
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            blob.download_to_filename(file_path)
-            print(f"Downloaded {blob.name} to {file_path}")
+        # Skip directories
+        if blob.name.endswith("/"):
+            continue
+
+        # Construct the file path relative to the destination folder
+        file_path = os.path.join(destination_folder, os.path.relpath(blob.name, source_folder))
+
+        # Ensure the directory for the file exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # Download the file to the constructed file path
+        blob.download_to_filename(file_path)
+        print(f"Downloaded {blob.name} to {file_path}")
+
     return destination_folder
+
 
 def upload_model(bucket_name,source_folder):
     client = storage.Client()
