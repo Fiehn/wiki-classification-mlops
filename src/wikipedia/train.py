@@ -13,6 +13,7 @@ from torch_geometric.loader import DataLoader
 from google.cloud import storage
 from google.cloud import secretmanager
 
+
 # Local imports
 #from data import load_data, load_split_data, explore_splits
 from model import NodeLevelGNN
@@ -40,7 +41,7 @@ def get_secret(secret_name):
     secret = response.payload.data.decode('UTF-8')
     return secret
 
-if os.environ["WANDB_API_KEY"] == "":
+if "WANDB_API_KEY" in os.environ or wandb.api.api_key == "":
         
     # Get the WandB API key from Secret Manager
     wandb_api_key = get_secret("WANDB_API_KEY")
