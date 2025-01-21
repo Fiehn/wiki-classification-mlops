@@ -99,29 +99,32 @@ class NodeLevelGNN(pl.LightningModule):
         acc = (x[mask].argmax(dim=-1) == data.y[mask]).sum().float() / mask.sum()
         return loss, acc
 
-    def configure_optimizers(self, lr=0.01):
-        # We use SGD here, but Adam works as well
-        optimizer = optim.Adam(self.parameters(), lr=lr)
-        #optimizer = optim.SGD(self.parameters(), lr=lr, momentum=0.9, weight_decay=2e-3)
+    def configure_optimizers(self, learning_rate=0.01, weight_decay=1e-4, optimizer_name="Adam"):
+        if optimizer_name == "Adam":
+            optimizer = optim.Adam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        elif optimizer_name == "AdamW":
+            optimizer = optim.AdamW(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        elif optimizer_name == "NAdam":
+            optimizer = optim.NAdam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        elif optimizer_name == "RMSprop":
+            optimizer = optim.RMSprop(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         return optimizer
 
     def training_step(self, batch, batch_idx):
         loss, acc = self.forward(batch, mode="train")
-        #self.log("train_loss", loss)
-        #self.log("train_acc", acc)
         self.log("train_loss", loss, on_step=True, on_epoch=True, prog_bar=True)
         self.log("train_acc", acc, on_step=True, on_epoch=True, prog_bar=True)
-
         return loss
 
     def validation_step(self, batch, batch_idx):
-        _, acc = self.forward(batch, mode="val")
-        #self.log("val_acc", acc)
+        loss, acc = self.forward(batch, mode="val")
         self.log("val_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("val_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
 
     def test_step(self, batch, batch_idx):
-        _, acc = self.forward(batch, mode="test")
+        loss, acc = self.forward(batch, mode="test")
         self.log("test_acc", acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log("test_loss", loss, on_step=False, on_epoch=True, prog_bar=True)
         
     def predict(self, batch):
         x, edge_index = batch.x, batch.edge_index
