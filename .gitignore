@@ -188,7 +188,7 @@ wandb
 wiki_classification
 lightning_logs
 models/model.pt
-
+checkpoints/
 
 /config.local
 /tmp
