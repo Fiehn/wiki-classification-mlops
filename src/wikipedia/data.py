@@ -10,8 +10,6 @@ from google.cloud import storage
 from torch_geometric.datasets import WikiCS
 
 # Set the path to your service account key
-if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ and os.path.exists("cloud/dtumlops-448012-37e77e52cd8f.json"):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-37e77e52cd8f.json"
 
 
 def upload_to_gcs(bucket_name, source_folder, destination_folder):
