@@ -5,12 +5,19 @@ import logging
 import wandb
 import pytorch_lightning as pl
 from torch_geometric.loader import DataLoader
+
+import os
+import shutil
+from google.cloud import storage
+from model import NodeLevelGNN
+
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from torch_geometric.datasets import WikiCS
 
 from model import NodeLevelGNN
 from data import load_data, load_split_data, explore_splits
+
 
 # Adjust verbosity
 logging.getLogger("pytorch_lightning").setLevel(logging.FATAL) # WARNING, ERROR, CRITICAL, DEBUG, INFO, FATAL
@@ -23,6 +30,61 @@ logging.getLogger("lightning").setLevel(logging.FATAL)
 
 app = typer.Typer()
 
+
+def download_from_gcs(bucket_name, source_folder, destination_folder):
+    """Download files from a GCS bucket."""
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+
+    # Ensure destination folder exists
+    os.makedirs(destination_folder, exist_ok=True)
+
+    blobs = bucket.list_blobs(prefix=source_folder)
+    for blob in blobs:
+        if not blob.name.endswith("/"):  # Skip directories
+            file_path = os.path.join(destination_folder, os.path.relpath(blob.name, source_folder))
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            blob.download_to_filename(file_path)
+            print(f"Downloaded {blob.name} to {file_path}")
+    return destination_folder
+
+@app.command()
+def train(
+    bucket_name: str = typer.Argument(..., help="GCS bucket name for data"),
+    source_folder: str = typer.Argument(..., help="Source folder in GCS bucket"),
+    local_data_folder: str = typer.Argument("data", help="Local folder to store downloaded data"),
+    hidden_channels: int = typer.Option(16, help="Number of hidden channels"),
+    hidden_layers: int = typer.Option(2, help="Number of hidden layers"),
+    dropout: float = typer.Option(0.5, help="Dropout rate"),
+    lr: float = typer.Option(0.01, help="Learning rate"),
+    num_epochs: int = typer.Option(100, help="Number of epochs"),
+    batch_size: int = typer.Option(32, help="Batch size"),
+    model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
+) -> None:
+    
+    # Download data from GCS
+    data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
+
+    # Initialize WandbLogger
+    wandb_logger = WandbLogger(
+        project="wiki_classification",
+        config={
+            "hidden_channels": hidden_channels,
+            "hidden_layers": hidden_layers,
+            "dropout": dropout,
+            "lr": lr,
+            "num_epochs": num_epochs,
+            "batch_size": batch_size,
+        },
+    )
+    wandb_logger.experiment.log({"test_log": "Wandb is active!"})
+
+    # Load the dataset from the downloaded data
+    data_module = load_split_data(root=data_path)
+
+    c_in = data_module.num_node_features
+    c_out = data_module.y.max().item() + 1
+
 class DeviceInfoCallback(pl.Callback):
     def on_train_start(self, trainer, pl_module):
         # Get the device from the model (e.g., cuda:0, cpu, etc.)
@@ -32,6 +94,7 @@ class DeviceInfoCallback(pl.Callback):
 
 def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name):
     """Initialize the model and optimizer."""
+
     model = NodeLevelGNN(
         c_in=c_in,
         c_hidden=hidden_channels,
@@ -39,6 +102,7 @@ def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learn
         num_layers=hidden_layers,
         dp_rate=dropout,
     )
+
     model.configure_optimizers(
         learning_rate=learning_rate,
         weight_decay=weight_decay,
@@ -58,6 +122,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
 
     train_loader = DataLoader([train_data], batch_size=1, num_workers=7, shuffle=False)
     val_loader = DataLoader([val_data], batch_size=1, num_workers=7)
+
 
     # Initialize model
     c_in = data.num_node_features
@@ -85,6 +150,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         enable_progress_bar=True,  # Show training progress in the terminal
         log_every_n_steps=1,
     )
+
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     #val_acc = trainer.callback_metrics.get("val_acc", None) # Relies on intermediate logging - limited to last epoch
@@ -165,6 +231,24 @@ def train_model(
         val_accuracies.append(val_acc)
         test_accuracies.append(test_acc)
     
+
+    # Save the model as a W&B artifact
+    # artifact = wandb.Artifact('model', type='model', metadata=dict({
+    #       "Accuracies": trainer.callback_metrics,
+    #        "hidden_channels": hidden_channels,
+    #        "hidden_layers": hidden_layers,
+    #        "dropout": dropout,
+    #        "lr": lr,
+    #        "num_epochs": num_epochs,
+    #        "batch_size": batch_size,
+    #    }))
+    # artifact.add_file('models/model.pt')
+    # wandb.log_artifact(artifact, aliases=["latest_model"])
+
+    # Clean up local data folder
+    # shutil.rmtree(local_data_folder, ignore_errors=True)
+    # print(f"Cleaned up local folder: {local_data_folder}")
+
     # Log average accuracy
     avg_val_acc = sum(val_accuracies) / len(val_accuracies)
     avg_test_acc = sum(test_accuracies) / len(test_accuracies)
@@ -177,3 +261,4 @@ def train_model(
 
 if __name__ == "__main__":
     app()
+

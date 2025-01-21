@@ -48,37 +48,37 @@ will check the repositories and the code to verify your answers.
 
 ### Week 1
 
-* [ ] Create a git repository (M5)
-* [ ] Make sure that all team members have write access to the GitHub repository (M5)
-* [ ] Create a dedicated environment for you project to keep track of your packages (M2)
-* [ ] Create the initial file structure using cookiecutter with an appropriate template (M6)
-* [ ] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
-* [ ] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
-* [ ] Remember to fill out the `requirements.txt` and `requirements_dev.txt` file with whatever dependencies that you
+* [x] Create a git repository (M5)
+* [x] Make sure that all team members have write access to the GitHub repository (M5)
+* [x] Create a dedicated environment for you project to keep track of your packages (M2)
+* [x] Create the initial file structure using cookiecutter with an appropriate template (M6)
+* [x] Fill out the `data.py` file such that it downloads whatever data you need and preprocesses it (if necessary) (M6)
+* [x] Add a model to `model.py` and a training procedure to `train.py` and get that running (M6)
+* [x] Remember to fill out the `requirements.txt` and `requirements_dev.txt` file with whatever dependencies that you
     are using (M2+M6)
-* [ ] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
+* [x] Remember to comply with good coding practices (`pep8`) while doing the project (M7)
 * [ ] Do a bit of code typing and remember to document essential parts of your code (M7)
-* [ ] Setup version control for your data or part of your data (M8)
-* [ ] Add command line interfaces and project commands to your code where it makes sense (M9)
-* [ ] Construct one or multiple docker files for your code (M10)
-* [ ] Build the docker files locally and make sure they work as intended (M10)
-* [ ] Write one or multiple configurations files for your experiments (M11)
+* [x] Setup version control for your data or part of your data (M8)
+* [x] Add command line interfaces and project commands to your code where it makes sense (M9)
+* [x] Construct one or multiple docker files for your code (M10)
+* [x] Build the docker files locally and make sure they work as intended (M10)
+* [x] Write one or multiple configurations files for your experiments (M11)
 * [ ] Used Hydra to load the configurations and manage your hyperparameters (M11)
 * [ ] Use profiling to optimize your code (M12)
-* [ ] Use logging to log important events in your code (M14)
-* [ ] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
-* [ ] Consider running a hyperparameter optimization sweep (M14)
-* [ ] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
+* [x] Use logging to log important events in your code (M14)
+* [x] Use Weights & Biases to log training progress and other important metrics/artifacts in your code (M14)
+* [x] Consider running a hyperparameter optimization sweep (M14)
+* [x] Use PyTorch-lightning (if applicable) to reduce the amount of boilerplate in your code (M15)
 
 ### Week 2
 
-* [ ] Write unit tests related to the data part of your code (M16)
-* [ ] Write unit tests related to model construction and or model training (M16)
+* [x] Write unit tests related to the data part of your code (M16)
+* [x] Write unit tests related to model construction and or model training (M16)
 * [ ] Calculate the code coverage (M16)
-* [ ] Get some continuous integration running on the GitHub repository (M17)
-* [ ] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
-* [ ] Add a linting step to your continuous integration (M17)
-* [ ] Add pre-commit hooks to your version control setup (M18)
+* [x] Get some continuous integration running on the GitHub repository (M17)
+* [x] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
+* [x] Add a linting step to your continuous integration (M17)
+* [x] Add pre-commit hooks to your version control setup (M18)
 * [ ] Add a continues workflow that triggers when data changes (M19)
 * [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
 * [ ] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
-s204617, --- question 2 fill here ---
+s204617, s204623, s204070, s204605, 
 
 ### Question 3
 > **A requirement to the project is that you include a third-party package not covered in the course. What framework**
@@ -143,7 +143,7 @@ s204617, --- question 2 fill here ---
 >
 > Answer:
 
-Pytorch Geometric--- question 3 fill here ---
+We used the Pytorch Geometric framework combined with Pytorch Lightning for creating the model and training the Graph Neural Network. We used PyG to both get the data and create the model architecture.
 
 ## Coding environment
 
@@ -165,7 +165,7 @@ Pytorch Geometric--- question 3 fill here ---
 
 We used UV to manage dependencies. It keeps track of dependencies, environment and python version throught the uv.lock file and the pyproject.toml automatically.
 To get a complete copy of our environment one would run the following while in the directory containing the two files:
-> pip install uv
+> pip install uv \
 > uv sync
 
 ### Question 5
@@ -182,7 +182,7 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 5 fill here ---
+We filled out most parts of the cookiecutter template, however we deviated by creating a folder for cloud build \cloud and not filling out parts such as \notebooks. 
 
 ### Question 6
 
@@ -197,7 +197,7 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 6 fill here ---
+We did not use any linting for the project or anything for typing consistency. This would have been ideal but never entered out workflow. In a larger project this would have been vital. It is an important step for reproducability and readability espacially for larger projects where everyone has their own way of writing code. For example we can take the way to write functions and classes where you can easily distinguish between the two and gleen some function from them by the way they are written if consistent.
 
 ## Version control
 
@@ -216,7 +216,7 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 7 fill here ---
+We implemented a data test and a model test. They primarily test the shape of the input and the existance of certain functions in the model. The forward pass is tested in the model to ensure training is possible. 
 
 ### Question 8
 
@@ -246,7 +246,7 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 9 fill here ---
+We heavily relied on branches for feature development. Creating a new branch for each feature. This seperated the work and ensured that there was always working code on the main branch. All merges to main were made with PR's to check that all code passed the appropriate tests before being commited to main.
 
 ### Question 10
 
@@ -278,7 +278,8 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 11 fill here ---
+For continuoues integration we have made 3 tests, which respectively tests the data structure, our model and the training of our model. The three tests are all included in the 'tests' folder. As the group members are using different operating systems and versions of python, we have set up the tests such that they run for both "ubuntu-latest" and "macos-latest", as well as two versions of python. This is reflected in the .github/workflows/tests.yaml file. 
+To enforce good coding practices we have utilised ruff in our pre-commit. 
 
 ## Running code and tracking experiments
 
@@ -297,7 +298,10 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 12 fill here ---
+We initially tested manually with Typer and Invoke
+> invoke train --lr 0.001 ...
+
+But the majority of hyperparameter tuning and testing later in the project was done using Weights and Biases sweep file.
 
 ### Question 13
 
@@ -344,7 +348,9 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 15 fill here ---
+For our project, we have developed two images, one for training and one for testing. These images are built on GCP, ensuring portability and scalability. A link to one of our Docker builds is provided below. We set up a Compute Engine instance for training our model, which is connected to our Dockerfile. This approach simplifies our workflow by avoiding the need to manually configure the environment on different machines. Instead, the container ensures consistency across deployments by packaging all dependencies, libraries, and code.
+
+https://console.cloud.google.com/cloud-build/builds;region=europe-west1/ff50dbae-b86c-40ef-9d77-76d7d7be6585?inv=1&invt=AbnWdw&project=dtumlops-448012 
 
 ### Question 16
 
@@ -376,7 +382,11 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
---- question 17 fill here ---
+For the project, we have used the following GCP services:
+* Bucket: is used as our cloud storage solution. Both our raw and proceseed data is therefore found in the bucket: mlops-proj-group3-bucket/torch_geometric_data
+* Artifact: is used for centralising and managing our repository, e.g. our docker images: europe-west1-docker.pkg.dev/dtumlops-448012/mlops-proj-group3-artifact
+* Compute engine: 
+
 
 ### Question 18
 

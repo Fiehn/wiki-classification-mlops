@@ -8,12 +8,20 @@ on:
     branches:
       - main
 
+# Github secrets
+# - uses: iterative/setup-dvc@v1
+# - name: Get data
+#   run: dvc pull
+#   env:
+#     GDRIVE_CREDENTIALS_DATA: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+  
 jobs:
   test:
     runs-on: ${{ matrix.operating-system }}
     strategy:
       matrix:
         operating-system: ["ubuntu-latest", "macos-latest"]
+        python-version: ["3.11", "3.12"]
 
     steps:
       - name: Checkout code
@@ -25,7 +33,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: "pyproject.toml"
+          python-version-file: ${{ matrix.python-version }}
 
       - name: Install the project
         run: uv sync --all-extras --dev
@@ -37,3 +45,6 @@ jobs:
         uses: astral-sh/setup-uv@v5
         with:
           enable-cache: true
+
+      - name: Check data statistics
+        run: uv run src/wikipedia/dataset_statistics.py
