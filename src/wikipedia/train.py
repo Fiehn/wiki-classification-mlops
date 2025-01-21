@@ -72,12 +72,12 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
             print(f"Downloaded {blob.name} to {file_path}")
     return destination_folder
 
-def upload_model(bucket_name, source_folder, model_name):
+def upload_model(bucket_name, model_name):
     client = storage.Client()
     bucket = client.bucket(bucket_name)
-    blob = bucket.blob(source_folder)
+    blob = bucket.blob(model_name)
     blob.upload_from_filename(model_name)
-    print(f"Uploaded model to {source_folder} in bucket {bucket_name}.")
+    print(f"Uploaded model {model_name} to bucket {bucket_name}.")
 
 class DeviceInfoCallback(pl.Callback):
     def on_train_start(self, trainer, pl_module):
@@ -189,7 +189,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         }
     }, f"models/split_{split_idx}_model.pt")
 
-    upload_model(bucket_name, "models", f"models/split_{split_idx}_model.pt")
+    upload_model(bucket_name, f"models/split_{split_idx}_model.pt")
 
     return val_acc, test_acc
 
