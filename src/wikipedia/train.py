@@ -43,8 +43,6 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
     client = storage.Client()
     bucket = client.bucket(bucket_name)
 
-    wandb.login()
-
     # Ensure destination folder exists
     os.makedirs(destination_folder, exist_ok=True)
 
@@ -57,6 +55,12 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
             print(f"Downloaded {blob.name} to {file_path}")
     return destination_folder
 
+def upload_model(bucket_name,source_folder):
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(source_folder)
+    blob.upload_from_filename("models/model.pt")
+    print(f"Uploaded model to {source_folder} in bucket {bucket_name}.")
 
 @app.command()
 def train(
@@ -73,7 +77,8 @@ def train(
 ) -> None:
     # Download data from GCS
     data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
-
+    
+    wandb.login()
     # Initialize WandbLogger
     wandb_logger = WandbLogger(
         project="wiki_classification",
@@ -155,6 +160,7 @@ def train(
 
     # Finish Wandb run
     wandb.finish()
+    upload_model(bucket_name,source_folder)
 
 
 if __name__ == "__main__":
