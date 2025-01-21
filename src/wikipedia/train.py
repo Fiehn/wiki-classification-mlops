@@ -15,8 +15,8 @@ import wandb
 
 from google.cloud import secretmanager
 
-if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-e5cfd43b6fd8.json"
+# if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+    # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-e5cfd43b6fd8.json"
 
 def get_secret(secret_name):
     # Create the Secret Manager client
@@ -50,7 +50,7 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
     os.makedirs(destination_folder, exist_ok=True)
 
     blobs = bucket.list_blobs(prefix=source_folder)
-    print("Items in bucket:", [blob.name for blob in blobs])
+    # print("Items in bucket:", [blob.name for blob in blobs])
     for blob in blobs:
         # Skip directories
         if blob.name.endswith("/"):
