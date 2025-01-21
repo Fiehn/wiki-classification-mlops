@@ -97,3 +97,5 @@ def dataset_statistics(
 
 if __name__ == "__main__":
     typer.run(dataset_statistics)
+
+# python src/wikipedia/dataset_statistics.py mlops-proj-group3-bucket torch_geometric_data
