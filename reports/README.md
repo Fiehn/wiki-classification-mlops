@@ -560,7 +560,15 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 29 fill here ---
+The diagram shows the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
+
+**Version Control and Quality tests**
+To enforce collaboration and code quality Git and GitHub were employed for version control. These tools allowed multiple team members to work in parallel on different features using branches and pull requests. GitHub also served as the central repository for the entire project. Pytest was implemented to test and validate the codebase. Automated tests ensured that new features or changes did not break existing functionality. For checking our code, we implemented some workflows using git and pytest. 
+
+**Data**
+Initially, the WikiCS dataset was downloaded locally. To improve data versioning and accessibility, we uploaded the dataset to Google Cloud Storage (GCS). From this point onward, all models and training workflows relied on the cloud-stored dataset, ensuring consistent and centralized access to the data. We also utilized DVC (Data Version Control) to manage dataset versions locally and track changes in a structured way.
+
+Moving beyond local development, we integrated several cloud-based services to streamline training, deployment, and monitoring processes. As mentioned we used GCS to host the dataset and trained models. We moreover used Google Artifact Registry to store the Docker images created during development.These images were used for cloud-based training and running our sweeps for hyperparameter tuning. Finally we used vertex AI as the primary platform for training and deploying machine learning models. After training, the models were uploaded to Vertex AI for use in production.
 
 ### Question 30
 
@@ -574,8 +582,8 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
-During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud.
-XXXXX 
+During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud. However once it we figured everything out with the right permission, service account and credentials, it worked very well and we therefore managed to do all of our training and hyperparameter tuning in the cloud.
+
 
 ### Question 31
 
