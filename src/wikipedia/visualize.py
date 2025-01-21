@@ -46,13 +46,6 @@ def visualize(
 
     # Step 2: Load the dataset
     dataset = load_split_data(root=data_path)
-    print(type(dataset))  # Should output: <class 'torch_geometric.datasets.wiki_cs.WikiCS'>
-    print(type(dataset[0]))  # Should output: <class 'torch_geometric.data.data.Data'>
-    data = dataset[0]
-    print(hasattr(data, "x"))  # Should output: True (Node features)
-    print(hasattr(data, "edge_index"))  # Should output: True (Graph structure)
-    print(hasattr(data, "y"))  # Should output: True (Labels)
-
 
     # Step 3: Load the trained model
     model = NodeLevelGNN(
