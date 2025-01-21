@@ -31,7 +31,7 @@ def get_secret(secret_name):
 if os.environ["WANDB_API_KEY"] == "":
         
     # Get the WandB API key from Secret Manager
-    wandb_api_key = get_secret("wandb-api-key")
+    wandb_api_key = get_secret("WANDB_API_KEY")
 
     # Log in to WandB using the API key
     os.environ["WANDB_API_KEY"] = wandb_api_key
@@ -160,7 +160,7 @@ def train(
 
     # Finish Wandb run
     wandb.finish()
-    upload_model(bucket_name,source_folder)
+    upload_model(bucket_name,"models/model.pt")
 
 
 if __name__ == "__main__":
