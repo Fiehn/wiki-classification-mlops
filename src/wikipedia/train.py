@@ -13,13 +13,37 @@ from torch_geometric.loader import DataLoader
 # Logging
 import wandb
 
-app = typer.Typer()
+from google.cloud import secretmanager
 
+def get_secret(secret_name):
+    # Create the Secret Manager client
+    client = secretmanager.SecretManagerServiceClient()
+    
+    # Access the secret version
+    project_id = "dtumlops-448012"	
+    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    response = client.access_secret_version(name=name)
+    
+    # Decode the secret payload
+    secret = response.payload.data.decode('UTF-8')
+    return secret
+
+if os.environ["WANDB_API_KEY"] == "":
+        
+    # Get the WandB API key from Secret Manager
+    wandb_api_key = get_secret("wandb-api-key")
+
+    # Log in to WandB using the API key
+    os.environ["WANDB_API_KEY"] = wandb_api_key
+    
+app = typer.Typer()
 
 def download_from_gcs(bucket_name, source_folder, destination_folder):
     """Download files from a GCS bucket."""
     client = storage.Client()
     bucket = client.bucket(bucket_name)
+
+    wandb.login()
 
     # Ensure destination folder exists
     os.makedirs(destination_folder, exist_ok=True)
