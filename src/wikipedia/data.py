@@ -27,20 +27,18 @@ def upload_to_gcs(bucket_name, source_folder, destination_folder):
             blob.upload_from_filename(file_path)
             print(f"Uploaded {file_path} to {destination_blob_name} in bucket {bucket_name}.")
 
+# def load_data(root="data/"):
+#     """Load the WikiCS dataset."""
+#     dataset = WikiCS(root=root, is_undirected=True)
+#     # Collapse the masks into a single mask
+#     split_index = 0
+#     dataset.train_mask = dataset.train_mask[split_index]
+#     dataset.val_mask = dataset.val_mask[split_index]
 
-def load_data(root="data/"):
-    """Load the WikiCS dataset."""
-    dataset = WikiCS(root=root, is_undirected=True)
-    # Collapse the masks into a single mask
-    split_index = 0
-    dataset.train_mask = dataset.train_mask[split_index]
-    dataset.val_mask = dataset.val_mask[split_index]
+#     # dataset.train_mask = dataset.train_mask.sum(dim=1).bool()
+#     # dataset.val_mask = dataset.val_mask.sum(dim=1).bool()
 
-    # dataset.train_mask = dataset.train_mask.sum(dim=1).bool()
-    # dataset.val_mask = dataset.val_mask.sum(dim=1).bool()
-
-    return dataset
-
+#     return dataset
 
 def load_split_data(root="data/"):
     dataset = WikiCS(root=root, is_undirected=True)
@@ -114,7 +112,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load the data
-    load_data()
+    load_split_data()
 
     # Upload data to GCS using the provided arguments
     upload_to_gcs(args.bucket_name, args.source_folder, args.destination_folder)
