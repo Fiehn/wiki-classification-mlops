@@ -1,30 +1,22 @@
 
 import os
 import shutil
-
-import pytorch_lightning as pl
-import torch
-import typer
-
-# Logging
-import wandb
-
-import copy
 import logging
 import wandb
+import typer
+import torch
 import pytorch_lightning as pl
-from torch_geometric.loader import DataLoader
-
-from google.cloud import storage
-from model import NodeLevelGNN
-
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from torch_geometric.datasets import WikiCS
 from torch_geometric.loader import DataLoader
 
-from data import load_data, load_split_data, explore_splits
+from google.cloud import storage
+from google.cloud import secretmanager
 
+# Local imports
+#from data import load_data, load_split_data, explore_splits
+from model import NodeLevelGNN
 
 # Adjust verbosity
 logging.getLogger("pytorch_lightning").setLevel(logging.FATAL) # WARNING, ERROR, CRITICAL, DEBUG, INFO, FATAL
@@ -35,8 +27,6 @@ logging.getLogger("lightning").setLevel(logging.FATAL)
 # sys.stdout = open(os.devnull, 'w')  # Suppress standard output
 # sys.stderr = open(os.devnull, 'w')  # Suppress error output
 
-
-from google.cloud import secretmanager
 
 def get_secret(secret_name):
     # Create the Secret Manager client
@@ -64,6 +54,10 @@ app = typer.Typer()
 
 def download_from_gcs(bucket_name, source_folder, destination_folder):
     """Download files from a GCS bucket."""
+
+    if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ and os.path.exists("cloud/dtumlops-448012-37e77e52cd8f.json"):
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-37e77e52cd8f.json"
+
     client = storage.Client()
     bucket = client.bucket(bucket_name)
 
@@ -86,42 +80,43 @@ def upload_model(bucket_name,source_folder):
     blob.upload_from_filename("models/model.pt")
     print(f"Uploaded model to {source_folder} in bucket {bucket_name}.")
 
-@app.command()
-def train(
-    bucket_name: str = typer.Argument("mlops-proj-group3-bucket", help="GCS bucket name for data"),
-    source_folder: str = typer.Argument("torch_geometric_data", help="Source folder in GCS bucket"),
-    local_data_folder: str = typer.Argument("data", help="Local folder to store downloaded data"),
-    hidden_channels: int = typer.Option(16, help="Number of hidden channels"),
-    hidden_layers: int = typer.Option(2, help="Number of hidden layers"),
-    dropout: float = typer.Option(0.5, help="Dropout rate"),
-    lr: float = typer.Option(0.01, help="Learning rate"),
-    num_epochs: int = typer.Option(100, help="Number of epochs"),
-    batch_size: int = typer.Option(32, help="Batch size"),
-    model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
-) -> None:
-    # Download data from GCS
-    data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
+# @app.command()
+# def train(
+#     bucket_name: str = typer.Argument("mlops-proj-group3-bucket", help="GCS bucket name for data"),
+#     source_folder: str = typer.Argument("torch_geometric_data", help="Source folder in GCS bucket"),
+#     local_data_folder: str = typer.Argument("data", help="Local folder to store downloaded data"),
+#     hidden_channels: int = typer.Option(16, help="Number of hidden channels"),
+#     hidden_layers: int = typer.Option(2, help="Number of hidden layers"),
+#     dropout: float = typer.Option(0.5, help="Dropout rate"),
+#     lr: float = typer.Option(0.01, help="Learning rate"),
+#     num_epochs: int = typer.Option(100, help="Number of epochs"),
+#     batch_size: int = typer.Option(32, help="Batch size"),
+#     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
+# ) -> None:
+#     # Download data from GCS
+#     data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
     
-    wandb.login()
-    # Initialize WandbLogger
-    wandb_logger = WandbLogger(
-        project="wiki_classification",
-        config={
-            "hidden_channels": hidden_channels,
-            "hidden_layers": hidden_layers,
-            "dropout": dropout,
-            "lr": lr,
-            "num_epochs": num_epochs,
-            "batch_size": batch_size,
-        },
-    )
-    wandb_logger.experiment.log({"test_log": "Wandb is active!"})
+#     wandb.login()
+#     # Initialize WandbLogger
+#     wandb_logger = WandbLogger(
+#         project="wiki_classification",
+#         config={
+#             "hidden_channels": hidden_channels,
+#             "hidden_layers": hidden_layers,
+#             "dropout": dropout,
+#             "lr": lr,
+#             "num_epochs": num_epochs,
+#             "batch_size": batch_size,
+#         },
+#     )
+#     wandb_logger.experiment.log({"test_log": "Wandb is active!"})
 
-    # Load the dataset from the downloaded data
-    data_module = load_data(root=data_path)
+#     # Load the dataset from the downloaded data
+#     data_module = load_data(root=data_path)
 
-    c_in = data_module.num_node_features
-    c_out = data_module.y.max().item() + 1
+#     c_in = data_module.num_node_features
+#     c_out = data_module.y.max().item() + 1
+
 
 class DeviceInfoCallback(pl.Callback):
     def on_train_start(self, trainer, pl_module):
@@ -213,6 +208,9 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
 @app.command("train_model")
 def train_model(
     #data_path: str = typer.Argument(..., help="Path to the data"),
+    bucket_name: str = typer.Argument("mlops-proj-group3-bucket", help="GCS bucket name for data"),
+    source_folder: str = typer.Argument("torch_geometric_data", help="Source folder in GCS bucket"),
+    local_data_folder: str = typer.Argument("data", help="Local folder to store downloaded data"),
     hidden_channels: int = typer.Option(32, help="Number of hidden channels"),
     hidden_layers: int = typer.Option(2, help="Number of hidden layers"),
     dropout: float = typer.Option(0.1, help="Dropout rate"),
@@ -227,6 +225,8 @@ def train_model(
     Main training function for both standalone runs and W&B sweeps.
     """
     pl.seed_everything(42)
+
+    wandb.login()
 
     # Initialize WandbLogger
     wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025")
@@ -243,12 +243,14 @@ def train_model(
         "model_checkpoint_callback": model_checkpoint_callback,
     })
 
-    data_module = WikiCS(root="data/", is_undirected=True)
+    # Download data from GCS
+    data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
+    data_module = WikiCS(root=data_path, is_undirected=True)
     data = data_module[0]
    
     # Run over all 20 splits and then average the results
-    #num_splits = data_module.train_mask.shape[1]
-    # num_splits = data_module[0].train_mask.shape[1]
+    # NIX PILLE
+    # num_splits = data_module[0].train_mask.shape[1] 
     num_splits = 1
     print(f"Total splits: {num_splits}")
 
@@ -286,6 +288,7 @@ def train_model(
     # Clean up local data folder
     # shutil.rmtree(local_data_folder, ignore_errors=True)
     # print(f"Cleaned up local folder: {local_data_folder}")
+
     # upload_model(bucket_name,"models/model.pt")
     
     # Log average accuracy

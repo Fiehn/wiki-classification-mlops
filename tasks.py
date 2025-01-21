@@ -69,9 +69,6 @@ def sweep(ctx: Context) -> None:
     
     ctx.run(f"wandb agent {sweep_id}", echo=True, pty=not WINDOWS)
 
-
-
-
 @task
 def test(ctx: Context) -> None:
     """Run tests."""
