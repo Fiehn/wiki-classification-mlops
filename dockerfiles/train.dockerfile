@@ -11,14 +11,18 @@ COPY README.md README.md
 COPY pyproject.toml pyproject.toml
 
 RUN mkdir -p /app/src && \
+    mkdir -p /app/configs/sweep && \
     cp -r src/* /app/src/ && \
     cp uv.lock /app/ && \
     cp README.md /app/ && \
     cp pyproject.toml /app/ && \
+    cp tasks.py /app/ && \
+    cp configs/sweep/sweep.yaml /app/configs/sweep/sweep.yaml && \
     mkdir -p /app/data && \
     mkdir -p /app/models && \
     mkdir -p /app/logs && \
     mkdir -p /app/reports
+    
 
 ENV WANDB_API_KEY=$WANDB_API_KEY
 
@@ -29,4 +33,4 @@ RUN pip install uv && \
     uv sync
 
 
-ENTRYPOINT ["uv", "run", "/src/wikipedia/train.py"]
+ENTRYPOINT ["uv", "run", "invoke", "sweep"]
