@@ -9,6 +9,7 @@ COPY src src/
 COPY uv.lock uv.lock
 COPY README.md README.md
 COPY pyproject.toml pyproject.toml
+COPY tasks.py tasks.py
 
 RUN mkdir -p /app/src && \
     mkdir -p /app/configs/sweep && \
@@ -16,7 +17,6 @@ RUN mkdir -p /app/src && \
     cp uv.lock /app/ && \
     cp README.md /app/ && \
     cp pyproject.toml /app/ && \
-    cp tasks.py /app/ && \
     cp configs/sweep/sweep.yaml /app/configs/sweep/sweep.yaml && \
     mkdir -p /app/data && \
     mkdir -p /app/models && \
