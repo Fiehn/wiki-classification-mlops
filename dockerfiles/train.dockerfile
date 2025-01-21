@@ -26,9 +26,7 @@ WORKDIR /app
 
 RUN pip install uv && \
     pip install wandb && \
-    # export WANDB_API_KEY=$WANDB_API_KEY && \
-    # wandb login $WANDB_API_KEY && \
     uv sync
-    
 
-ENTRYPOINT ["uv", "run", "src/wikipedia/train.py"]
+
+ENTRYPOINT ["uv", "run", "/src/wikipedia/train.py"]

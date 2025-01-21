@@ -1,21 +1,28 @@
+
+import os
+import shutil
+
+import pytorch_lightning as pl
 import torch
-import copy
 import typer
+
+# Logging
+import wandb
+
+import copy
 import logging
 import wandb
 import pytorch_lightning as pl
 from torch_geometric.loader import DataLoader
 
-import os
-import shutil
 from google.cloud import storage
 from model import NodeLevelGNN
 
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
 from torch_geometric.datasets import WikiCS
+from torch_geometric.loader import DataLoader
 
-from model import NodeLevelGNN
 from data import load_data, load_split_data, explore_splits
 
 
@@ -28,6 +35,30 @@ logging.getLogger("lightning").setLevel(logging.FATAL)
 # sys.stdout = open(os.devnull, 'w')  # Suppress standard output
 # sys.stderr = open(os.devnull, 'w')  # Suppress error output
 
+
+from google.cloud import secretmanager
+
+def get_secret(secret_name):
+    # Create the Secret Manager client
+    client = secretmanager.SecretManagerServiceClient()
+    
+    # Access the secret version
+    project_id = "dtumlops-448012"	
+    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    response = client.access_secret_version(name=name)
+    
+    # Decode the secret payload
+    secret = response.payload.data.decode('UTF-8')
+    return secret
+
+if os.environ["WANDB_API_KEY"] == "":
+        
+    # Get the WandB API key from Secret Manager
+    wandb_api_key = get_secret("WANDB_API_KEY")
+
+    # Log in to WandB using the API key
+    os.environ["WANDB_API_KEY"] = wandb_api_key
+    
 app = typer.Typer()
 
 
@@ -48,10 +79,17 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
             print(f"Downloaded {blob.name} to {file_path}")
     return destination_folder
 
+def upload_model(bucket_name,source_folder):
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(source_folder)
+    blob.upload_from_filename("models/model.pt")
+    print(f"Uploaded model to {source_folder} in bucket {bucket_name}.")
+
 @app.command()
 def train(
-    bucket_name: str = typer.Argument(..., help="GCS bucket name for data"),
-    source_folder: str = typer.Argument(..., help="Source folder in GCS bucket"),
+    bucket_name: str = typer.Argument("mlops-proj-group3-bucket", help="GCS bucket name for data"),
+    source_folder: str = typer.Argument("torch_geometric_data", help="Source folder in GCS bucket"),
     local_data_folder: str = typer.Argument("data", help="Local folder to store downloaded data"),
     hidden_channels: int = typer.Option(16, help="Number of hidden channels"),
     hidden_layers: int = typer.Option(2, help="Number of hidden layers"),
@@ -61,10 +99,10 @@ def train(
     batch_size: int = typer.Option(32, help="Batch size"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
 ) -> None:
-    
     # Download data from GCS
     data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
-
+    
+    wandb.login()
     # Initialize WandbLogger
     wandb_logger = WandbLogger(
         project="wiki_classification",
@@ -80,7 +118,7 @@ def train(
     wandb_logger.experiment.log({"test_log": "Wandb is active!"})
 
     # Load the dataset from the downloaded data
-    data_module = load_split_data(root=data_path)
+    data_module = load_data(root=data_path)
 
     c_in = data_module.num_node_features
     c_out = data_module.y.max().item() + 1
@@ -248,7 +286,8 @@ def train_model(
     # Clean up local data folder
     # shutil.rmtree(local_data_folder, ignore_errors=True)
     # print(f"Cleaned up local folder: {local_data_folder}")
-
+    # upload_model(bucket_name,"models/model.pt")
+    
     # Log average accuracy
     avg_val_acc = sum(val_accuracies) / len(val_accuracies)
     avg_test_acc = sum(test_accuracies) / len(test_accuracies)
@@ -261,4 +300,3 @@ def train_model(
 
 if __name__ == "__main__":
     app()
-
