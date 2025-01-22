@@ -38,7 +38,7 @@ WORKDIR /app
 
 RUN pip install --no-cache-dir uv
 RUN pip install --no-cache-dir wandb
-RUN --mount=type=cache,target=/root/.cache/uv uv sync
+RUN uv sync
 
 # print statements also go to terminal, not only logs
 ENV PYTHONUNBUFFERED=1 
