@@ -18,6 +18,7 @@ RUN mkdir -p /app/src && \
     cp uv.lock /app/ && \
     cp README.md /app/ && \
     cp pyproject.toml /app/ && \
+    cp tasks.py /app/ && \
     cp -r configs/sweep/* /app/configs/sweep/ && \
     mkdir -p /app/data && \
     mkdir -p /app/models && \
