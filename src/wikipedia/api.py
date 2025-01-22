@@ -40,63 +40,50 @@ if __name__ == "__main__":
 
 '''
 
-# Chat-skelet til kørsel med cloud:
-
-
-import os
-from google.cloud import aiplatform
+from fastapi import FastAPI
+from pydantic import BaseModel
 from google.cloud import storage
+import torch  # Or your model's framework
+import os
 
 # Configuration
 PROJECT_ID = "mlops-448012"
 BUCKET_NAME = "mlops-proj-group3-bucket"
 MODEL_FILENAME = "best_model.pt"
-MODEL_DISPLAY_NAME = "wiki-classifier-model"  # A user-friendly name
-REGION = "europe-west1"
-SERVING_CONTAINER_IMAGE_URI = "europe-docker.pkg.dev/vertex-ai/prediction/pytorch-cpu.1-12:latest" # Use the correct image
+CREDENTIALS_JSON = "path/to/your/service_account_key.json" # Path to service account key
 
-def deploy_model():
-    # 1. Check if model exists in bucket
-    print("Checking if model exists in Cloud Storage...")
-    storage_client = storage.Client(project=PROJECT_ID)
+app = FastAPI()
+
+# Load the model outside the request handler (on startup)
+try:
+    storage_client = storage.Client.from_service_account_json(CREDENTIALS_JSON)
     bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(MODEL_FILENAME)
+    blob.download_to_filename("local_model.pt") # download to local file
+    
+    from .model import NodeLevelGNN # import your model class
+    model = NodeLevelGNN.load_from_checkpoint("local_model.pt")
+    os.remove("local_model.pt") # remove the file after loading
+    model.eval()
+    print("Model loaded successfully!")
+except Exception as e:
+    print(f"Error loading model: {e}")
+    raise # Re-raise exception to stop uvicorn if model loading fails
 
-    if not blob.exists():
-        print(f"Error: Model file '{MODEL_FILENAME}' not found in bucket '{BUCKET_NAME}'.")
-        return
 
-    print("Model found in Cloud Storage.")
+class TextData(BaseModel):
+    text: str
 
-    # 2. Upload the model to Vertex AI Model Registry (pointing to the bucket)
-    print("Uploading model to Vertex AI Model Registry (from bucket)...")
-    aiplatform.init(project=PROJECT_ID, location=REGION)
-
+@app.post("/predict")
+async def predict(data: TextData):
     try:
-        model = aiplatform.Model.upload(
-            display_name=MODEL_DISPLAY_NAME,
-            artifact_uri=f"gs://{BUCKET_NAME}",  # Point directly to the bucket
-            serving_container_image_uri=SERVING_CONTAINER_IMAGE_URI,
-        )
-        print(f"Model uploaded. Model name: {model.resource_name}")
-
-        # 3. Deploy the model to an Endpoint
-        print("Deploying model to Endpoint...")
-        endpoint = aiplatform.Endpoint.create(
-            display_name="wiki-classifier-endpoint",
-            location=REGION
-        )
-
-        model_deployed = model.deploy(
-            endpoint=endpoint,
-            machine_type="n1-standard-2",  # Choose an appropriate machine type
-        )
-        print(f"Model deployed to endpoint: {endpoint.resource_name}")
-        print(f"Endpoint ID: {endpoint.name}")
-
+        with torch.no_grad():
+            prediction = model(data.text)
+        return {"prediction": prediction.tolist()}
     except Exception as e:
-        print(f"An error occurred during model upload or deployment: {e}")
+        print(f"Error during prediction: {e}")
+        return {"error": str(e)}, 500
 
 if __name__ == "__main__":
-    deploy_model()
-
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
