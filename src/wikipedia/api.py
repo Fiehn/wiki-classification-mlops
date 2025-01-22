@@ -1,3 +1,4 @@
+'''
 from fastapi import FastAPI
 from pydantic import BaseModel
 import torch
@@ -37,62 +38,65 @@ if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
 
+'''
+
 # Chat-skelet til kørsel med cloud:
 
-'''
+
 import os
-import subprocess
-import json
+from google.cloud import aiplatform
 from google.cloud import storage
 
-# Konfiguration
-PROJECT_ID = 
-BUCKET_NAME = 
-MODEL_FILENAME = 
-ENDPOINT_ID = 
-REGION = 
+# Configuration
+PROJECT_ID = "mlops-448012"
+BUCKET_NAME = "mlops-proj-group3-bucket"
+MODEL_FILENAME = "best_model.pt"
+MODEL_DISPLAY_NAME = "wiki-classifier-model"  # A user-friendly name
+REGION = "europe-west1"
+SERVING_CONTAINER_IMAGE_URI = "europe-docker.pkg.dev/vertex-ai/prediction/pytorch-cpu.1-12:latest" # Use the correct image
 
 def deploy_model():
-    # 1. Download modellen fra Cloud Storage
-    print("Downloading model from Cloud Storage...")
+    # 1. Check if model exists in bucket
+    print("Checking if model exists in Cloud Storage...")
     storage_client = storage.Client(project=PROJECT_ID)
     bucket = storage_client.bucket(BUCKET_NAME)
     blob = bucket.blob(MODEL_FILENAME)
-    blob.download_to_filename(MODEL_FILENAME)
-    print("Model downloaded.")
 
-    # 2. Deploy modellen til Vertex AI Endpoint
-    print("Deploying model to Vertex AI Endpoint...")
+    if not blob.exists():
+        print(f"Error: Model file '{MODEL_FILENAME}' not found in bucket '{BUCKET_NAME}'.")
+        return
 
-    # Forbered request body
-    request_body = {
-        "instances": [{"text": "Dette er en test tekst."}]
-    }
+    print("Model found in Cloud Storage.")
 
-    # Laver curl kommandoen, så den kan køres i python
-    curl_command = [
-        "curl",
-        "-X", "POST",
-        "-H", "Authorization: Bearer $(gcloud auth print-access-token)",
-        "-H", "Content-Type: application/json",
-        "-d", json.dumps(request_body),
-        f"https://{REGION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/{ENDPOINT_ID}:predict"
-    ]
+    # 2. Upload the model to Vertex AI Model Registry (pointing to the bucket)
+    print("Uploading model to Vertex AI Model Registry (from bucket)...")
+    aiplatform.init(project=PROJECT_ID, location=REGION)
 
     try:
-        # Udfører curl kommandoen
-        process = subprocess.run(curl_command, capture_output=True, text=True, check=True)
-        print("Model deployed and prediction made successfully!")
-        print("Response:", process.stdout)
+        model = aiplatform.Model.upload(
+            display_name=MODEL_DISPLAY_NAME,
+            artifact_uri=f"gs://{BUCKET_NAME}",  # Point directly to the bucket
+            serving_container_image_uri=SERVING_CONTAINER_IMAGE_URI,
+        )
+        print(f"Model uploaded. Model name: {model.resource_name}")
 
-    except subprocess.CalledProcessError as e:
-        print(f"Error deploying model or making prediction: {e}")
-        print("Stderr:", e.stderr)
+        # 3. Deploy the model to an Endpoint
+        print("Deploying model to Endpoint...")
+        endpoint = aiplatform.Endpoint.create(
+            display_name="wiki-classifier-endpoint",
+            location=REGION
+        )
+
+        model_deployed = model.deploy(
+            endpoint=endpoint,
+            machine_type="n1-standard-2",  # Choose an appropriate machine type
+        )
+        print(f"Model deployed to endpoint: {endpoint.resource_name}")
+        print(f"Endpoint ID: {endpoint.name}")
 
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        print(f"An error occurred during model upload or deployment: {e}")
 
 if __name__ == "__main__":
     deploy_model()
 
-'''
