@@ -3,10 +3,28 @@ from invoke import Context, task
 from google.cloud import secretmanager
 import wandb
 import time
+from google.cloud import secretmanager
+import wandb
 
 WINDOWS = os.name == "nt" # this means that the OS is Windows
 PROJECT_NAME = "wikipedia"
 PYTHON_VERSION = "3.12"
+
+# Set if using local docker
+# if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-e5cfd43b6fd8.json"
+
+def login_wandb(secret_name):
+    client = secretmanager.SecretManagerServiceClient()
+    
+    project_id = "dtumlops-448012"	
+    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    response = client.access_secret_version(name=name)
+    
+    secret = response.payload.data.decode('UTF-8')
+    os.environ["WANDB_API_KEY"] = secret
+
+    wandb.login()
 
 # prefix string to try uv first, then python
 #prefix = "uv" if not WINDOWS else "python"
@@ -70,12 +88,11 @@ def train_cloud(ctx: Context) -> None:
 @task
 def sweep(ctx: Context) -> None:
     """Run hyperparameter sweep."""
-    #if os.environ.get("WANDB_API_KEY") is None:
-    login_wandb("WANDB_API_KEY")
-
+    if os.environ.get("WANDB_API_KEY") == "" or os.environ.get("WANDB_API_KEY") == None:
+        login_wandb("WANDB_API_KEY")
     # Initialize the sweep and get the Sweep ID
     result = ctx.run("wandb sweep configs/sweep/sweep.yaml", echo=True, pty=not WINDOWS)
-    
+
     #Extract the Sweep ID from the command output
     sweep_id = None
     for line in result.stdout.splitlines():
