@@ -1,5 +1,7 @@
 import os
 from invoke import Context, task
+from google.cloud import secretmanager
+import wandb
 import time
 from google.cloud import secretmanager
 import wandb
@@ -26,6 +28,21 @@ def login_wandb(secret_name):
 
 # prefix string to try uv first, then python
 #prefix = "uv" if not WINDOWS else "python"
+
+#if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+#    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-37e77e52cd8f.json"
+
+def login_wandb(secret_name):
+    client = secretmanager.SecretManagerServiceClient()
+    
+    project_id = "dtumlops-448012"	
+    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    response = client.access_secret_version(name=name)
+    
+    secret = response.payload.data.decode('UTF-8')
+    os.environ["WANDB_API_KEY"] = secret
+
+    wandb.login()
 
 # Setup commands
 @task
@@ -88,6 +105,9 @@ def sweep(ctx: Context) -> None:
        raise RuntimeError("Sweep ID could not be determined. Check the output of `wandb sweep`.")
     
     ctx.run(f"wandb agent mlops2025/wiki_classification/{sweep_id}", echo=True, pty=not WINDOWS)
+
+# docker run --gpus all --rm -it -v "$(pwd)/cloud:/app/cloud:ro" -v "$(pwd)/tasks.py:/app/tasks.py:ro" --entrypoint "uv" train-image-gpu run invoke sweep
+
 
 # "\\wsl.localhost\Ubuntu\home\fenriswulven\project\wiki-classification-mlops\checkpoints\split_0\best_model-epoch=195-val_acc=0.8219-v4.ckpt"
 ## test with best model

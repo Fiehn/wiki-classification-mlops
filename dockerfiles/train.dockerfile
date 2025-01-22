@@ -1,5 +1,7 @@
 # Base image
-FROM python:3.11-slim AS base
+# FROM python:3.11-slim AS base
+FROM nvcr.io/nvidia/pytorch:24.12-py3
+ENV UV_LINK_MODE=copy
 
 RUN apt update && \
     apt install --no-install-recommends -y build-essential gcc && \
@@ -30,9 +32,15 @@ ENV WANDB_API_KEY=$WANDB_API_KEY
 
 WORKDIR /app
 
-RUN pip install uv && \
-    pip install wandb && \
-    uv sync
+# RUN pip install uv && \
+#     pip install wandb && 
+#     uv sync
 
+RUN pip install --no-cache-dir uv
+RUN pip install --no-cache-dir wandb
+RUN uv sync
 
-ENTRYPOINT ["uv", "run", "invoke", "sweep"]
+# print statements also go to terminal, not only logs
+ENV PYTHONUNBUFFERED=1 
+
+ENTRYPOINT ["uv", "run", "/src/wikipedia/train.py"]
