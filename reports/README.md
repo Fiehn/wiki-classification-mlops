@@ -163,8 +163,7 @@ We used the Pytorch Geometric framework combined with Pytorch Lightning for crea
 >
 > Answer:
 
-We used UV to manage dependencies. It keeps track of dependencies, environment and python version throught the uv.lock file and the pyproject.toml automatically.
-To get a complete copy of our environment one would run the following while in the directory containing the two files:
+We used UV to manage dependencies. It keeps track of dependencies, environment and python version throught the uv.lock file and the pyproject.toml automatically. To get a complete copy of our environment one would run the following while in the directory containing the two files:
 > pip install uv \
 > uv sync
 
@@ -182,7 +181,7 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
-We filled out most parts of the cookiecutter template, however we deviated by creating a folder for cloud build \cloud and not filling out parts such as \notebooks. 
+We filled out most parts of the cookiecutter template, however we deviated by creating a folder for cloud build "\cloud" and not filling out parts such as \notebooks. 
 
 ### Question 6
 
@@ -607,7 +606,8 @@ Student s204617 and s204623 was in charge of setting up the inital cookie cutter
 Student s204617 has been in charge of setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
 Student s204617 and s204070 have taken the lead on building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students.
 Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test).
-Student s204617 has been in charge of GCP. 
-Student s194645 has been in charge of API
+Student s204617 and s204623 has been in charge of GCP. 
+Student s194645 has been in charge of API.
 
+We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
 All members have contributed to the project and writing the report. Overall it has been a collaborative process making the project.
