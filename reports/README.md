@@ -604,7 +604,8 @@ FEEL FREE TO CHANGE, NOT SURE AT ALL ABOUT THE SPLIT!!!
 
 Student s204617 and s204623 was in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
 Student s204617 has been in charge of setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
-Student s204617 and s204070 have taken the lead on building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students.
+Students s204070 and s204617 building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on other papers and optimising the hyperparameters with a wandb sweep. 
+Student s204070 has made the tasks.py to create invoke commands for everything.
 Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test).
 Student s204617 and s204623 has been in charge of GCP. 
 Student s194645 has been in charge of API.
