@@ -149,6 +149,9 @@ import datetime
 import json
 from typing import List
 from contextlib import asynccontextmanager
+from torch_geometric.datasets import WikiCS
+from torch_geometric.loader import DataLoader
+import pytorch_lightning as pl
 
 import torch
 from torch_geometric.data import Data
@@ -156,7 +159,10 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from google.cloud import storage
 from pydantic import BaseModel
 
+from src.wikipedia.train import download_from_gcs
 from src.wikipedia.model import NodeLevelGNN
+
+from google.cloud import secretmanager
 
 # Global variables
 model = None  # Initialize as None
@@ -167,6 +173,7 @@ MODEL_FILE_NAME = "models/best_model.pt"
 METADATA_FILE_NAME = "models/best_model_metadata.json"
 LOCAL_MODEL_PATH = "models/best_model.pt"
 LOCAL_METADATA_PATH = "models/best_model_metadata.json"
+LOCAL_DATA_FOLDER = "data"
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -231,6 +238,80 @@ async def lifespan(app: FastAPI):
 # Attach the lifespan context to the FastAPI app
 app = FastAPI(lifespan=lifespan)
 
+# @app.post("/predict", response_model=PredictionOutput)
+# async def predict_node_classes(node_input: NodeInput, background_tasks: BackgroundTasks):
+#     try:
+#         # Convert input to PyTorch tensors
+#         x = torch.tensor(node_input.x, dtype=torch.float32).to(device)
+#         edge_index = torch.tensor(node_input.edge_index, dtype=torch.long).to(device)
+
+#         # Create PyTorch Geometric Data object
+#         data = Data(x=x, edge_index=edge_index)
+
+#         # Perform prediction
+#         with torch.no_grad():
+#             predictions = model(data, mode="test")
+#             predicted_classes = predictions.argmax(dim=-1).cpu().tolist()
+
+#         # Save predictions to GCS
+#         timestamp = datetime.datetime.now(tz=datetime.UTC).isoformat()
+#         predictions_json = {
+#             "input": node_input.dict(),
+#             "predictions": predicted_classes,
+#             "timestamp": timestamp
+#         }
+#         predictions_filename = f"predictions/gnn_predictions_{timestamp}.json"
+#         background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, predictions_filename, json.dumps(predictions_json))
+
+#         return PredictionOutput(node_predictions=predicted_classes)
+
+
+# @app.post("/predict", response_model=PredictionOutput)
+# async def predict_node_classes(node_input: NodeInput, background_tasks: BackgroundTasks):
+#     try:
+#         # Convert input to PyTorch tensors
+#         x = torch.tensor(node_input.x, dtype=torch.float32).to(device)
+#         edge_index = torch.tensor(node_input.edge_index, dtype=torch.long).to(device)
+
+#         # Download and prepare test data
+#         data_path = download_from_gcs(BUCKET_NAME, "torch_geometric_data", LOCAL_DATA_FOLDER)
+#         dataset = WikiCS(root=data_path, is_undirected=True)
+#         data = dataset[0]
+
+#         # Prepare test data loader
+#         test_data = data.clone()
+#         test_loader = DataLoader([test_data], batch_size=1)
+
+#         # Perform prediction
+#         with torch.no_grad():
+#             for batch in test_loader:
+#                 batch = batch.to(device)
+#                 logits, _ = model(batch, mode="test")  # Unpack logits and ignore loss/accuracy
+#                 predicted_classes = logits.argmax(dim=-1).cpu().tolist()
+
+#         # Show results
+#         trainer = pl.Trainer(
+#             accelerator="auto",
+#             enable_progress_bar=True,
+#             enable_model_summary=True,
+#         )
+        
+#         # Run test
+#         test_results = trainer.test(model, test_loader, verbose=True)
+#         print(f"Test Results: {test_results}")
+
+#         # Save predictions to GCS
+#         timestamp = datetime.datetime.now(tz=datetime.UTC).isoformat()
+#         predictions_json = {
+#             "input": node_input.dict(),
+#             "predictions": predicted_classes,
+#             "timestamp": timestamp
+#         }
+#         predictions_filename = f"predictions/gnn_predictions_{timestamp}.json"
+#         background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, predictions_filename, json.dumps(predictions_json))
+
+#         return PredictionOutput(node_predictions=predicted_classes)
+
 @app.post("/predict", response_model=PredictionOutput)
 async def predict_node_classes(node_input: NodeInput, background_tasks: BackgroundTasks):
     try:
@@ -241,17 +322,17 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
         # Create PyTorch Geometric Data object
         data = Data(x=x, edge_index=edge_index)
 
-        # Perform prediction
+        # Perform prediction using the model's predict method
         with torch.no_grad():
-            predictions = model(data, mode="test")
-            predicted_classes = predictions.argmax(dim=-1).cpu().tolist()
+            logits = model.predict(data)  # Use predict to get logits
+            predicted_classes = logits.argmax(dim=-1).cpu().tolist()
 
         # Save predictions to GCS
         timestamp = datetime.datetime.now(tz=datetime.UTC).isoformat()
         predictions_json = {
             "input": node_input.dict(),
             "predictions": predicted_classes,
-            "timestamp": timestamp
+            "timestamp": timestamp,
         }
         predictions_filename = f"predictions/gnn_predictions_{timestamp}.json"
         background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, predictions_filename, json.dumps(predictions_json))
@@ -262,19 +343,7 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-# run: uvicorn src.wikipedia.api:app --reload
-
-
-# import torch
-# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# checkpoint = torch.load("/Users/clarareginekold/Desktop/dtu/DTU/02476 Machine Learning Operations/wiki-classification-mlops/models/best_model.pt", map_location=device)
-# print(checkpoint.keys())  # Check available keys
-
-# # If "hyperparameters" is available in the checkpoint, inspect it
-# if "hyperparameters" in checkpoint:
-#     print(checkpoint["hyperparameters"])
-
-
+# Run: uvicorn src.wikipedia.api:app --reload
 
 
 # curl -X POST "http://127.0.0.1:8000/predict" \
@@ -290,11 +359,11 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
 
 
 
-# load the model from file pt 
-import torch
-model = torch.load("/Users/clarareginekold/Desktop/dtu/DTU/02476 Machine Learning Operations/wiki-classification-mlops/models/best_model.pt")
+# # load the model from file pt 
+# import torch
+# model = torch.load("/Users/clarareginekold/Desktop/dtu/DTU/02476 Machine Learning Operations/wiki-classification-mlops/models/best_model.pt")
 
-# what is in the model 
-print(model.keys())  # Check available keys
-print(model["model_state_dict"])  # Check available keys
-print(model['hyperparameters'])  # Check available keys
+# # what is in the model 
+# print(model.keys())  # Check available keys
+# print(model["model_state_dict"])  # Check available keys
+# print(model['hyperparameters'])  # Check available keys

@@ -20,7 +20,7 @@ from google.cloud import secretmanager
 
 # Local imports
 #from data import load_data, load_split_data, explore_splits
-from model import NodeLevelGNN
+from src.wikipedia.model import NodeLevelGNN
 
 # Adjust verbosity
 logging.getLogger("pytorch_lightning").setLevel(logging.FATAL) # WARNING, ERROR, CRITICAL, DEBUG, INFO, FATAL
