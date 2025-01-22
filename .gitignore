@@ -187,7 +187,8 @@ cython_debug/
 wandb
 wiki_classification
 lightning_logs
-models/model.pt
+models
+checkpoints/
 
 
 /config.local
@@ -197,3 +198,4 @@ models/model.pt
 # ignore GCP service account keys
 dtumlops-448012-37e77e52cd8f.json
 dtumlops-448012-f2134e26466c.json
+dtumlops-448012-e5cfd43b6fd8.json

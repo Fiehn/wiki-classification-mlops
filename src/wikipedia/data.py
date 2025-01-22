@@ -10,8 +10,6 @@ from google.cloud import storage
 from torch_geometric.datasets import WikiCS
 
 # Set the path to your service account key
-if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ and os.path.exists("cloud/dtumlops-448012-37e77e52cd8f.json"):
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-37e77e52cd8f.json"
 
 
 def upload_to_gcs(bucket_name, source_folder, destination_folder):
@@ -27,20 +25,67 @@ def upload_to_gcs(bucket_name, source_folder, destination_folder):
             blob.upload_from_filename(file_path)
             print(f"Uploaded {file_path} to {destination_blob_name} in bucket {bucket_name}.")
 
+# def load_data(root="data/"):
+#     """Load the WikiCS dataset."""
+#     dataset = WikiCS(root=root, is_undirected=True)
+#     # Collapse the masks into a single mask
+#     split_index = 0
+#     dataset.train_mask = dataset.train_mask[split_index]
+#     dataset.val_mask = dataset.val_mask[split_index]
 
-def load_data(root="data/"):
-    """Load the WikiCS dataset."""
-    dataset = WikiCS(root=root, is_undirected=True)
-    # Collapse the masks into a single mask
-    dataset.train_mask = dataset.train_mask.sum(dim=1).bool()
-    dataset.val_mask = dataset.val_mask.sum(dim=1).bool()
-    return dataset
+#     # dataset.train_mask = dataset.train_mask.sum(dim=1).bool()
+#     # dataset.val_mask = dataset.val_mask.sum(dim=1).bool()
 
+#     return dataset
 
 def load_split_data(root="data/"):
     dataset = WikiCS(root=root, is_undirected=True)
     return dataset
 
+
+def explore_splits(dataset):
+    num_splits = dataset.train_mask.shape[1]
+    print(f"There are {num_splits} training/validation splits.\n")
+    for i in range(num_splits):
+        train_count = dataset.train_mask[:, i].sum().item()
+        val_count   = dataset.val_mask[:, i].sum().item()
+        stop_count  = dataset.stopping_mask[:, i].sum().item()
+        print(f"Split {i}:")
+        print(f"  Training nodes: {train_count}")
+        print(f"  Validation nodes: {val_count}")
+        print(f"  Stopping nodes: {stop_count}\n")
+    # Test mask is a single vector:
+    test_count = dataset.test_mask.sum().item()
+    print("Test set nodes:", test_count)
+
+    print(dataset.x.shape)
+    print(dataset.edge_index.shape)
+    print(dataset.y.shape)
+    print(dataset.train_mask.shape)
+    print(dataset.val_mask.shape)
+    print(dataset.test_mask.shape)
+    # We have one global test set of 5847
+    print(dataset.test_mask.shape)
+
+
+
+def explore_splits2():
+    dataset = WikiCS(root="data/", is_undirected=True)
+    data = dataset[0]
+    num_splits = data.train_mask.shape[1]
+    print(f"There are {num_splits} training/validation splits.\n")
+    for i in range(num_splits):
+        train_count = data.train_mask[:, i].sum().item()
+        val_count   = data.val_mask[:, i].sum().item()
+        stop_count  = data.stopping_mask[:, i].sum().item()
+        print(f"Split {i}:")
+        print(f"  Training nodes: {train_count}")
+        print(f"  Validation nodes: {val_count}")
+        print(f"  Stopping nodes: {stop_count}\n")
+    # Test mask is a single vector:
+    test_count = data.test_mask.sum().item()
+    print("Test set nodes:", test_count) 
+  
 
 def cleanup_local_data(folder):
     """Delete the local data folder after upload."""
@@ -65,7 +110,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Load the data
-    load_data()
+    load_split_data()
 
     # Upload data to GCS using the provided arguments
     upload_to_gcs(args.bucket_name, args.source_folder, args.destination_folder)

@@ -1,14 +1,31 @@
 import os
-
 from invoke import Context, task
+import time
+from google.cloud import secretmanager
+import wandb
 
-WINDOWS = os.name == "nt"
+WINDOWS = os.name == "nt" # this means that the OS is Windows
 PROJECT_NAME = "wikipedia"
 PYTHON_VERSION = "3.12"
 
+# Set if using local docker
+# if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
+#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-e5cfd43b6fd8.json"
+
+def login_wandb(secret_name):
+    client = secretmanager.SecretManagerServiceClient()
+    
+    project_id = "dtumlops-448012"	
+    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
+    response = client.access_secret_version(name=name)
+    
+    secret = response.payload.data.decode('UTF-8')
+    os.environ["WANDB_API_KEY"] = secret
+
+    wandb.login()
+
 # prefix string to try uv first, then python
 #prefix = "uv" if not WINDOWS else "python"
-
 
 # Setup commands
 @task
@@ -44,6 +61,41 @@ def train(ctx: Context) -> None:
     """Train model."""
     ctx.run(f"uv run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
 
+#python src/wikipedia/train.py mlops-proj-group3-bucket torch_geometric_data
+@task
+def train_cloud(ctx: Context) -> None:
+    """Train model on Google Cloud AI Platform."""
+    ctx.run(f"python src/{PROJECT_NAME}/train.py mlops-proj-group3-bucket torch_geometric_data", echo=True, pty=not WINDOWS)
+
+# wandb sweep --project <propject-name> <path-to-config file>
+@task
+def sweep(ctx: Context) -> None:
+    """Run hyperparameter sweep."""
+    if os.environ.get("WANDB_API_KEY") == "" or os.environ.get("WANDB_API_KEY") == None:
+        login_wandb("WANDB_API_KEY")
+    # Initialize the sweep and get the Sweep ID
+    result = ctx.run("wandb sweep configs/sweep/sweep.yaml", echo=True, pty=not WINDOWS)
+
+    #Extract the Sweep ID from the command output
+    sweep_id = None
+    for line in result.stdout.splitlines():
+       if "Run sweep agent with:" in line:
+           sweep_id = line.split("wandb agent ")[-1].strip()
+           sweep_id = sweep_id.split("/")[-1]
+           sweep_id = sweep_id[:8]
+           break
+    if not sweep_id:
+       raise RuntimeError("Sweep ID could not be determined. Check the output of `wandb sweep`.")
+    
+    ctx.run(f"wandb agent mlops2025/wiki_classification/{sweep_id}", echo=True, pty=not WINDOWS)
+
+# "\\wsl.localhost\Ubuntu\home\fenriswulven\project\wiki-classification-mlops\checkpoints\split_0\best_model-epoch=195-val_acc=0.8219-v4.ckpt"
+## test with best model
+@task 
+def test2(ctx: Context) -> None:
+    """Test model on test set."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/test.py models/best_model-epoch=195-val_acc=0.8219-v4.ckpt", echo=True, pty=not WINDOWS)
+
 @task
 def test(ctx: Context) -> None:
     """Run tests."""
@@ -75,3 +127,4 @@ def build_docs(ctx: Context) -> None:
 def serve_docs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
+
