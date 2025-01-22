@@ -7,11 +7,11 @@ steps:
     '.',
     '-t',
     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/train-image',
+    '--cache-from', 'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/train-image:latest',
     '-f',
     'dockerfiles/train.dockerfile'
   ]  
   secretEnv: ['WANDB_API_KEY']
-
 
 - name: 'gcr.io/cloud-builders/docker'
   id: 'Push container image'

@@ -139,8 +139,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     val_data.val_mask = data.val_mask[:, split_idx]  # 1D mask for validation
     val_data.train_mask = None  # Not needed during validation
 
-    train_loader = DataLoader([train_data], batch_size=1, num_workers=7, shuffle=False)
-    val_loader = DataLoader([val_data], batch_size=1, num_workers=7)
+    train_loader = DataLoader([train_data], batch_size=1, num_workers=-1, shuffle=False)
+    val_loader = DataLoader([val_data], batch_size=1, num_workers=-1)
 
 
     # Initialize model
@@ -169,7 +169,6 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         enable_progress_bar=True,  # Show training progress in the terminal
         log_every_n_steps=1,
     )
-
 
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     #val_acc = trainer.callback_metrics.get("val_acc", None) # Relies on intermediate logging - limited to last epoch
@@ -233,7 +232,7 @@ def train_model(
     batch_size: int = typer.Option(11701, help="Batch size"),
     optimizer_name: str = typer.Option("RMSprop", help="Optimizer name"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
-    num_splits: int = typer.Option(1, help="Number of splits to train on"),
+    num_splits: int = typer.Option(20, help="Number of splits to train on"),
     ) -> None:
     """
     Main training function for both standalone runs and W&B sweeps.
