@@ -185,7 +185,7 @@ This would install uv initially and then uv sync would automatically look in the
 >
 > Answer:
 
-We filled out most parts of the cookiecutter template, however we deviated by creating a folder for cloud build "\cloud" and not filling out parts such as \notebooks. 
+We filled out most of the cookiecutter template provided by the course but made some key deviations. Specifically, we created a new folder named \cloud for cloud build-related configurations, which wasn’t part of the original structure. The cloud folder was also used when testing the cloud integration locally by adding our service worker keys to it  and mounting it on the dockers images on runtime. Additionally, we left certain sections, such as \notebooks, unfilled as we did not use notebooks at all. We omitted using notebooks as they weren't necessary for what we were making and would have added overhead. 
 
 ### Question 6
 
