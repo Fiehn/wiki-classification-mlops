@@ -350,11 +350,17 @@ Hyper parameter tuning was done using a sweep in W&B, this sweep used one split 
 > Answer:
 
 ```markdown
-![my_image](figures/sweep.png)
+![my_train](figures/train1.png)
 ```
 
-We have used W&B in our project for hyperparameter tuning using a sweep.yaml file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the 
-test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
+We have used W&B in our project for hyper parameter tuning using a sweep.yaml file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
+
+```markdown
+![my_sweep](figures/sweep.png)
+```
+
+The sweep was performed once on the first training split of the data (1/20 of the entire data) and used a Bayesian optimization to find the best hyper parameters for the validation accuracy. This is displayed in the image where the 30 runs can be seen. This sweep was made using GC's Vertex AI train functionality to not use local resources on the intensive sweep.
+Other factors were also tracked during the hyper parameter tuning such as train and validation loss, training accuracy and a test score for unseen data.
 
 ### Question 15
 
@@ -369,9 +375,14 @@ test accuracy, which serves as the final evaluation metric for the model's abili
 >
 > Answer:
 
-For our project, we have developed two images, one for training and one for testing. These images are built on GCP, ensuring portability and scalability. A link to one of our Docker builds is provided below. We set up a Compute Engine instance for training our model, which is connected to our Dockerfile. This approach simplifies our workflow by avoiding the need to manually configure the environment on different machines. Instead, the container ensures consistency across deployments by packaging all dependencies, libraries, and code.
+For our project, we have developed three images, one for [training](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/train.dockerfile), one for [testing](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/test.dockerfile) and one for [API](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile) calls to inference. These images are built on GCP via cloud build triggers, ensuring portability and scalability. The cloudbuild file can be seen in [/cloud/cloudbuild.yaml](https://github.com/Fiehn/wiki-classification-mlops/blob/main/cloud/cloudbuild.yaml), and the dockerfiles are as expected in the folder /dockerfiles/. The train dockers were run using Vertex AI train building from the train dockerfile.
 
-https://console.cloud.google.com/cloud-build/builds;region=europe-west1/ff50dbae-b86c-40ef-9d77-76d7d7be6585?inv=1&invt=AbnWdw&project=dtumlops-448012 
+To build locally for testing that the containers work we use a command like the following:
+```bash
+docker build dockerfiles/train.dockerfile
+```
+
+Using dockers simplified our workflow by avoiding the need to manually configure the environment on different machines. Instead, the container ensures consistency across deployments by packaging all dependencies, libraries, and code. Then using the cloud build triggers ensured that the dockers we used in the cloud was always the latest working build.
 
 ### Question 16
 
@@ -387,6 +398,7 @@ https://console.cloud.google.com/cloud-build/builds;region=europe-west1/ff50dbae
 > Answer:
 
 --- question 16 fill here ---
+???
 
 ## Working in the cloud
 
