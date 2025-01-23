@@ -14,7 +14,12 @@ from google.cloud import storage
 from pydantic import BaseModel
 
 # from src.wikipedia.train import download_from_gcs
-from src.wikipedia.model import NodeLevelGNN
+# from src.wikipedia.model import NodeLevelGNN
+
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
+from model import NodeLevelGNN
 
 # Global variables
 model = None  # Initialize as None
@@ -29,6 +34,7 @@ LOCAL_DATA_FOLDER = "data"
 
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 # Input and output schemas
 class NodeInput(BaseModel):
@@ -90,6 +96,10 @@ async def lifespan(app: FastAPI):
 # Attach the lifespan context to the FastAPI app
 app = FastAPI(lifespan=lifespan)
 
+
+@app.get("/")
+async def read_root():
+    return {"message": "Welcome to the MNIST model inference API!"}
 
 @app.post("/predict", response_model=PredictionOutput)
 async def predict_node_classes(node_input: NodeInput, background_tasks: BackgroundTasks):
