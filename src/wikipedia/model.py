@@ -3,6 +3,7 @@ from torch_geometric.nn import GCNConv
 import pytorch_lightning as pl
 from torch_geometric import nn as geom_nn
 import torch.optim as optim
+import torchmetrics
 
 class GNNModel(nn.Module):
     def __init__(
@@ -73,6 +74,14 @@ class NodeLevelGNN(pl.LightningModule):
         self.model = GNNModel(**model_kwargs)
         self.loss_module = nn.CrossEntropyLoss()
 
+        # Initialize metrics using torchmetrics
+        self.train_acc = torchmetrics.Accuracy(task="multiclass", num_classes=model_kwargs['c_out'])
+        self.val_acc = torchmetrics.Accuracy(task="multiclass", num_classes=model_kwargs['c_out'])
+        self.test_acc = torchmetrics.Accuracy(task="multiclass", num_classes=model_kwargs['c_out'])
+        self.train_loss = torchmetrics.MeanMetric()
+        self.val_loss = torchmetrics.MeanMetric()
+        self.test_loss = torchmetrics.MeanMetric()
+
     def forward(self, data, mode="train"):
         x, edge_index = data.x, data.edge_index
         x = self.model(x, edge_index)
@@ -108,6 +117,8 @@ class NodeLevelGNN(pl.LightningModule):
             optimizer = optim.NAdam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         elif optimizer_name == "RMSprop":
             optimizer = optim.RMSprop(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        else:
+            assert False, f"Unknown optimizer: {optimizer_name}"
         return optimizer
 
     def training_step(self, batch, batch_idx):
