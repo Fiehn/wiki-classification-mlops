@@ -20,12 +20,12 @@ def dataset():
 
 @pytest.fixture
 def split_idx(dataset):
-    """Fixture to extract split indices from dataset masks."""
+    """Fixture to extract individual split indices from dataset masks."""
     data = dataset.data
     train_idx = data.train_mask.nonzero(as_tuple=True)[0]
     val_idx = data.val_mask.nonzero(as_tuple=True)[0]
     test_idx = data.test_mask.nonzero(as_tuple=True)[0]
-    return {'train': train_idx, 'val': val_idx, 'test': test_idx}
+    return train_idx, val_idx, test_idx
 
 def test_dataset_not_empty(dataset):
     """Test that the dataset is not empty."""
@@ -54,7 +54,8 @@ def test_split_masks(dataset, split):
 
 def test_prepare_data_loaders(dataset, split_idx):
     """Test the data loaders preparation."""
-    train_loader, val_loader, test_loader = prepare_data_loaders(dataset.data, split_idx)
+    train_idx, val_idx, test_idx = split_idx
+    train_loader, val_loader, test_loader = prepare_data_loaders(dataset.data, train_idx, val_idx)
     assert train_loader is not None
     assert val_loader is not None
     assert test_loader is not None
