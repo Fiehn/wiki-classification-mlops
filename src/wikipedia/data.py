@@ -11,7 +11,6 @@ from torch_geometric.datasets import WikiCS
 
 # Set the path to your service account key
 
-
 def upload_to_gcs(bucket_name, source_folder, destination_folder):
     """Uploads files from a local folder to a GCS bucket."""
     client = storage.Client()
@@ -25,25 +24,61 @@ def upload_to_gcs(bucket_name, source_folder, destination_folder):
             blob.upload_from_filename(file_path)
             print(f"Uploaded {file_path} to {destination_blob_name} in bucket {bucket_name}.")
 
-# def load_data(root="data/"):
-#     """Load the WikiCS dataset."""
-#     dataset = WikiCS(root=root, is_undirected=True)
-#     # Collapse the masks into a single mask
-#     split_index = 0
-#     dataset.train_mask = dataset.train_mask[split_index]
-#     dataset.val_mask = dataset.val_mask[split_index]
+def download_from_gcs(bucket_name, source_folder, destination_folder):
+    """Download files from a GCS bucket."""
 
-#     # dataset.train_mask = dataset.train_mask.sum(dim=1).bool()
-#     # dataset.val_mask = dataset.val_mask.sum(dim=1).bool()
+    if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ and os.path.exists("cloud/dtumlops-448012-37e77e52cd8f.json"):
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-37e77e52cd8f.json"
 
-#     return dataset
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+
+    # Ensure destination folder exists
+    os.makedirs(destination_folder, exist_ok=True)
+
+    blobs = bucket.list_blobs(prefix=source_folder)
+    # print("Items in bucket:", [blob.name for blob in blobs])
+    for blob in blobs:
+        # Skip directories
+        if blob.name.endswith("/"):
+            continue
+
+        # Construct the file path relative to the destination folder
+        file_path = os.path.join(destination_folder, os.path.relpath(blob.name, source_folder))
+
+        # Ensure the directory for the file exists
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
+        # Download the file to the constructed file path
+        blob.download_to_filename(file_path)
+        print(f"Downloaded {blob.name} to {file_path}")
+
+    return destination_folder
+
+def upload_model(bucket_name, model_name):
+    client = storage.Client()
+    bucket = client.bucket(bucket_name)
+    blob = bucket.blob(model_name)
+    blob.upload_from_filename(model_name)
+    print(f"Uploaded model {model_name} to bucket {bucket_name}.")
+
+def download_file(bucket_name, source_blob_name, destination_file_name):
+    """Downloads a blob from the bucket."""
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(source_blob_name)
+    blob.download_to_filename(destination_file_name)
+    print(f"Blob {source_blob_name} downloaded to {destination_file_name}.")
+
 
 def load_split_data(root="data/"):
     dataset = WikiCS(root=root, is_undirected=True)
     return dataset
 
-
-def explore_splits(dataset):
+def explore_splits(dataset=None):
+    if dataset is None:
+        dataset = WikiCS(root="data/", is_undirected=True)
+        dataset = dataset[0]
     num_splits = dataset.train_mask.shape[1]
     print(f"There are {num_splits} training/validation splits.\n")
     for i in range(num_splits):
@@ -66,25 +101,6 @@ def explore_splits(dataset):
     print(dataset.test_mask.shape)
     # We have one global test set of 5847
     print(dataset.test_mask.shape)
-
-
-
-def explore_splits2():
-    dataset = WikiCS(root="data/", is_undirected=True)
-    data = dataset[0]
-    num_splits = data.train_mask.shape[1]
-    print(f"There are {num_splits} training/validation splits.\n")
-    for i in range(num_splits):
-        train_count = data.train_mask[:, i].sum().item()
-        val_count   = data.val_mask[:, i].sum().item()
-        stop_count  = data.stopping_mask[:, i].sum().item()
-        print(f"Split {i}:")
-        print(f"  Training nodes: {train_count}")
-        print(f"  Validation nodes: {val_count}")
-        print(f"  Stopping nodes: {stop_count}\n")
-    # Test mask is a single vector:
-    test_count = data.test_mask.sum().item()
-    print("Test set nodes:", test_count) 
   
 
 def cleanup_local_data(folder):
