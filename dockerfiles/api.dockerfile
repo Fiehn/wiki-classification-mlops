@@ -31,9 +31,11 @@ RUN mkdir -p /app/src && \
 WORKDIR /app
 
 RUN pip install uv
+RUN pip install uvicorn
 RUN uv sync
 
 # print statements also go to terminal, not only logs
 ENV PYTHONUNBUFFERED=1 
 
-ENTRYPOINT ["uvicorn", "src/scientific/api:app", "--host", "0.0.0.0", "--port", "8000"]
+ENTRYPOINT ["uv", "run"]
+CMD ["uvicorn", "src.wikipedia.api:app", "--host", "0.0.0.0", "--port", "8000"]
