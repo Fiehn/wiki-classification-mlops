@@ -267,8 +267,8 @@ We heavily relied on branches for feature development. We created a new branch f
 >
 > Answer:
 
---- question 10 fill here ---
-???
+During the project, we did not explicitly use DVC for data version control. Our workflow involved downloading the WikiCS dataset from Torch-Geometric and storing it in a bucket on Google Cloud Platform (GCP). By storing the data on GCP, we achieved a basic form of version control through the bucket's inherent capabilities. However, since our dataset was static and we did not anticipate any changes, we did not find the need to use DVC directly.
+That said, using DVC could have been beneficial in cases where datasets are frequently updated or when experiments require tracking changes to datasets alongside code versions.
 
 ### Question 11
 
