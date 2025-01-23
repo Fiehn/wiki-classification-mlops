@@ -1,7 +1,7 @@
 
 steps:
 - name: 'gcr.io/cloud-builders/docker'
-  id: 'Build container image'
+  id: 'Build train container image'
   args: [
     'build',
     '.',
@@ -14,14 +14,14 @@ steps:
   secretEnv: ['WANDB_API_KEY']
 
 - name: 'gcr.io/cloud-builders/docker'
-  id: 'Push container image'
+  id: 'Push train container image'
   args: [
     'push',
     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/train-image'
   ]
 
 - name: 'gcr.io/cloud-builders/docker'
-  id: 'Build container image'
+  id: 'Build test container image'
   args: [
     'build',
     '.',
@@ -34,7 +34,7 @@ steps:
 
 
 - name: 'gcr.io/cloud-builders/docker'
-  id: 'Push container image'
+  id: 'Push test container image'
   args: [
     'push',
     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/test-image'
