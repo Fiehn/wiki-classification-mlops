@@ -1,5 +1,3 @@
-
-
 import os
 import datetime
 import json
@@ -15,7 +13,7 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from google.cloud import storage
 from pydantic import BaseModel
 
-from src.wikipedia.train import download_from_gcs
+# from src.wikipedia.train import download_from_gcs
 from src.wikipedia.model import NodeLevelGNN
 
 # Global variables
