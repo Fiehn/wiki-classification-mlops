@@ -35,31 +35,31 @@ jobs:
         with:
           python-version: 3.12
 
-      - name: Install the project
-        run: uv sync --all-extras --dev
-
-      # **Authenticate with Google Cloud**
-      - name: Authenticate to Google Cloud
+      # **Setup and Authenticate with Google Cloud**
+      - name: Setup and Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           project_id: dtumlops-448012
           credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
+          export_default_credentials: true
       
-      # pip install gcloud
-      - name: Install gcloud
-        run: |
-          curl -sSL https://sdk.cloud.google.com | bash > /dev/null
-          source $HOME/google-cloud-sdk/path.bash.inc
-          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} --quiet
+      # # pip install gcloud
+      # - name: Install gcloud
+      #   run: |
+      #     curl -sSL https://sdk.cloud.google.com | bash > /dev/null
+      #     source $HOME/google-cloud-sdk/path.bash.inc
+      #     gcloud auth activate-service-account --key-file=${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} --quiet
 
       # **Set Google Cloud Project**
-      - name: Set Google Cloud Project
-        run: gcloud config set project dtumlops-448012
+      # - name: Set Google Cloud Project
+      #   run: gcloud config set project dtumlops-448012
 
+      - name: Install the project
+        run: uv sync --all-extras --dev
 
       - name: Run tests
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        # env:
+        #   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run pytest tests
 
       - name: Enable caching
@@ -68,11 +68,11 @@ jobs:
           enable-cache: true
 
       - name: Check data statistics
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        # env:
+        #   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run src/wikipedia/dataset_statistics.py
 
       - name: Coverage report
-        env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
+        # env:
+        #   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run coverage report
