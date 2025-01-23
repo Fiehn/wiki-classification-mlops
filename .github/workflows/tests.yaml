@@ -42,17 +42,15 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
+          project_id: dtumlops-448012
           credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
       
       # pip install gcloud
       - name: Install gcloud
         run: |
-          curl -sSL https://sdk.cloud.google.com | bash
-          exec -l $SHELL
-          gcloud init --console-only
-          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-          gcloud auth list
-          gcloud config list
+          curl -sSL https://sdk.cloud.google.com | bash > /dev/null
+          source $HOME/google-cloud-sdk/path.bash.inc
+          gcloud auth activate-service-account --key-file=${{ secrets.GCP_SERVICE_ACCOUNT_KEY }} --quiet
 
       # **Set Google Cloud Project**
       - name: Set Google Cloud Project
