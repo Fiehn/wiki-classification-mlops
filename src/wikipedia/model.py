@@ -108,6 +108,8 @@ class NodeLevelGNN(pl.LightningModule):
             optimizer = optim.NAdam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         elif optimizer_name == "RMSprop":
             optimizer = optim.RMSprop(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        else:
+            assert False, f"Unknown optimizer: {optimizer_name}"
         return optimizer
 
     def training_step(self, batch, batch_idx):
