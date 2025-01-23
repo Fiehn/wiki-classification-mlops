@@ -21,7 +21,6 @@ jobs:
     strategy:
       matrix:
         operating-system: ["ubuntu-latest", "macos-latest"]
-        python-version: ['3.12']
 
     steps:
       - name: Checkout code
@@ -33,7 +32,7 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version-file: ${{ matrix.python-version }}
+          python-version: 3.12
 
       - name: Install the project
         run: uv sync --all-extras --dev
