@@ -43,4 +43,4 @@ RUN uv sync
 # print statements also go to terminal, not only logs
 ENV PYTHONUNBUFFERED=1 
 
-ENTRYPOINT ["uv", "run", "/src/wikipedia/train.py"]
+ENTRYPOINT ["uv", "run", "src/wikipedia/train.py"]

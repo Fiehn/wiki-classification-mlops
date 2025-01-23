@@ -30,4 +30,4 @@ RUN pip install uv && \
     uv sync
 
 
-ENTRYPOINT ["uv", "run", "/src/wikipedia/test.py"]
+ENTRYPOINT ["uv", "run", "src/wikipedia/test.py"]
