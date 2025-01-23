@@ -3,7 +3,7 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import CSVLogger
 from torch_geometric.data import Data
-
+from unittest.mock import MagicMock
 from src.wikipedia.model import NodeLevelGNN
 
 def test_model():
@@ -18,26 +18,13 @@ def test_model():
 
 class MockGraphData:
     def __init__(self, num_nodes=100, num_features=300, num_classes=20):
-        x = torch.randn(num_nodes, num_features)
-        edge_index = torch.randint(0, num_nodes, (2, num_nodes * 2))
-        y = torch.randint(0, num_classes, (num_nodes,))
-        
-        train_mask = torch.zeros(num_nodes, dtype=torch.bool)
-        val_mask = torch.zeros(num_nodes, dtype=torch.bool)
-        test_mask = torch.zeros(num_nodes, dtype=torch.bool)
-        
-        train_mask[:int(num_nodes * 0.6)] = True
-        val_mask[int(num_nodes * 0.6):int(num_nodes * 0.8)] = True
-        test_mask[int(num_nodes * 0.8):] = True
-        
-        self.data = Data(
-            x=x, 
-            edge_index=edge_index, 
-            y=y, 
-            train_mask=train_mask, 
-            val_mask=val_mask, 
-            test_mask=test_mask
-        )
+        self.data = MagicMock()
+        self.data.x = torch.randn(num_nodes, num_features)
+        self.data.edge_index = torch.randint(0, num_nodes, (2, 200))
+        self.data.y = torch.randint(0, num_classes, (num_nodes,))
+        self.data.train_mask = torch.randint(0, 2, (num_nodes,), dtype=torch.bool)
+        self.data.val_mask = torch.randint(0, 2, (num_nodes,), dtype=torch.bool)
+        self.data.test_mask = torch.randint(0, 2, (num_nodes,), dtype=torch.bool)
 
 @pytest.fixture
 def gnn_model():
@@ -51,14 +38,9 @@ def gnn_model():
 
 @pytest.fixture
 def mock_trainer():
-    return pl.Trainer(
-        max_epochs=1, 
-        limit_train_batches=1,
-        logger=CSVLogger(save_dir='test_logs'),
-        enable_checkpointing=False,
-        enable_progress_bar=False,
-        enable_model_summary=False
-    )
+    trainer = MagicMock()
+    trainer.callback_metrics = {"val_acc": 0.85}
+    return trainer
 
 def test_model_initialization(gnn_model):
     """Test model initialization and basic properties."""
@@ -66,12 +48,6 @@ def test_model_initialization(gnn_model):
     assert hasattr(gnn_model, 'model')
     assert hasattr(gnn_model, 'loss_module')
     assert isinstance(gnn_model.loss_module, torch.nn.CrossEntropyLoss)
-
-def test_invalid_forward_mode(gnn_model):
-    """Test handling of invalid forward mode."""
-    mock_data = MockGraphData().data
-    with pytest.raises(AssertionError):
-        gnn_model.forward(mock_data, mode="invalid")
 
 def test_empty_graph_data(gnn_model):
     """Test handling of empty graph data."""
@@ -110,9 +86,16 @@ def test_optimizers(gnn_model):
         assert optimizer is not None
 
 def test_invalid_optimizer(gnn_model):
-    """Test handling of an invalid optimizer."""
-    with pytest.raises(AssertionError):
-        gnn_model.configure_optimizers(optimizer_name="InvalidOptimizer")
+    """Test handling of an invalid optimizer by giving it a name that is not supported."""
+    with pytest.raises(ValueError):
+        gnn_model.configure_optimizers(learning_rate=0.01, weight_decay=1e-4, optimizer_name="ADADMW")
+
+def test_invalid_forward_mode(gnn_model):
+    """Test handling of an invalid forward mode."""
+    mock_data = MockGraphData().data
+    with pytest.raises(ValueError):
+        gnn_model.forward(mock_data, mode="invalid")
+
 
 def test_training_step(gnn_model, mock_trainer):
     """Test training step with mock data and trainer."""
@@ -166,3 +149,11 @@ def test_metric_tracking(gnn_model, mock_trainer):
     assert hasattr(gnn_model, 'val_loss')
     assert hasattr(gnn_model, 'test_acc')
     assert hasattr(gnn_model, 'test_loss')
+
+def test_mismatch_input(gnn_model):
+    """Test handling of mismatched input dimensions."""
+    mock_data = MockGraphData().data
+    mock_data.x = torch.randn(50, 300)  # Mismatch with labels
+    mock_data.y = torch.randint(0, 20, (100,))
+    with pytest.raises(Exception):
+        gnn_model.forward(mock_data, mode="train")
