@@ -72,7 +72,8 @@ async def lifespan(app: FastAPI):
         download_file_from_gcs(BUCKET_NAME, METADATA_FILE_NAME, LOCAL_METADATA_PATH)
 
     # Load model checkpoint
-    checkpoint = torch.load(LOCAL_MODEL_PATH, map_location=device)
+    checkpoint = torch.load(LOCAL_MODEL_PATH, map_location=device, weights_only=True)
+
 
     # Load hyperparameters
     hyperparameters = checkpoint['hyperparameters']
