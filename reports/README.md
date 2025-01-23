@@ -166,9 +166,10 @@ We used the data set available in the framework: WikiCS. With this we used the D
 > Answer:
 
 We used the open source [UV package manager](https://astral.sh/) from astral to manage dependencies and python environments. It keeps track of dependencies, environment and python version through the uv.lock file and the pyproject.toml automatically. To get a complete copy of our environment one would have to run the following while in the directory containing the two files:
-> pip install uv \
-> uv sync
-
+```bash
+pip install uv \
+uv sync
+```
 This would install uv initially and then uv sync would automatically look in the uv.lock file and pyproject.toml file for dependencies and python version. With this info it would initialize a virtual environment and install all the packages either from the local cache if available or the internet.
 
 ### Question 5
@@ -221,6 +222,7 @@ More explicit use would have been ideal for formating consistency. In a larger p
 > Answer:
 
 We implemented a data test and a model test. They primarily test the shape of the input and the existance of certain functions in the model. The forward pass is tested in the model to ensure training is possible. 
+???
 
 ### Question 8
 
@@ -250,7 +252,7 @@ We implemented a data test and a model test. They primarily test the shape of th
 >
 > Answer:
 
-We heavily relied on branches for feature development. Creating a new branch for each feature. This seperated the work and ensured that there was always working code on the main branch. All merges to main were made with PR's to check that all code passed the appropriate tests before being commited to main.
+We heavily relied on branches for feature development. We created a new branch for each feature being developed and then once the feature was working it was merged into the main branch via a pull request. This helped to separate the work and ensure that there was always working code on the main branch (disregarding uncaught errors and build failures). All merges to main were made with PR's to check that all code passed the appropriate tests before being committed to main. Then when merge conflicts appeared we made sure to have at least one other developer to review the pull request before admitting it.
 
 ### Question 10
 
@@ -266,6 +268,7 @@ We heavily relied on branches for feature development. Creating a new branch for
 > Answer:
 
 --- question 10 fill here ---
+???
 
 ### Question 11
 
@@ -283,7 +286,8 @@ We heavily relied on branches for feature development. Creating a new branch for
 > Answer:
 
 For continuoues integration we have made 3 tests, which respectively tests the data structure, our model and the training of our model. The three tests are all included in the 'tests' folder. As the group members are using different operating systems and versions of python, we have set up the tests such that they run for both "ubuntu-latest" and "macos-latest", as well as two versions of python. This is reflected in the .github/workflows/tests.yaml file. 
-To enforce good coding practices we have utilised ruff in our pre-commit. 
+To enforce good coding practices we have utilised ruff in our pre-commit. Other pre-commits that ensure that uv.lock exists and prints a requirements.txt for anyone not wanting to use uv for dependencies.
+We set up a trigger to build the test and train docker builds in GCP whenever there is a push to main along with this we set up continuous deployment of the api docker in cloud run again at a push to main.  
 
 ## Running code and tracking experiments
 
@@ -302,10 +306,12 @@ To enforce good coding practices we have utilised ruff in our pre-commit.
 >
 > Answer:
 
-We initially tested manually with Typer and Invoke
-> invoke train --lr 0.001 ...
+We initially experimented manually with Typer and Invoke using the following structure:
+```bash
+uv run invoke train --lr 0.001 ...
+```
+This allowed us to easily change parameter values on the fly and everything was stored and recorded in Weights and Biases. We did not use a configuration framework other than when we use Weights and Biases in the next question.
 
-But the majority of hyperparameter tuning and testing later in the project was done using Weights and Biases sweep.yaml file.
 
 ### Question 13
 
@@ -320,7 +326,13 @@ But the majority of hyperparameter tuning and testing later in the project was d
 >
 > Answer:
 
---- question 13 fill here ---
+All experiments and test logged to Weights and Biases from the beginning, this includes the model as an artifact so reproducibility was always possible. This was done using the sweep.yaml file and the command:
+```bash
+uv run invoke sweep
+```
+To reproduce any experiment one would have to get the artifact model from W&B that corresponds to the specific run as metadata it contains all hyper parameters. This would then be downloaded and run.
+
+Hyper parameter tuning was done using a sweep in W&B, this sweep used one split of the data and used Bayesian optimization to find the parameters that maximized validation accuracy.
 
 ### Question 14
 
@@ -337,7 +349,10 @@ But the majority of hyperparameter tuning and testing later in the project was d
 >
 > Answer:
 
-**INSERT PICTURES** 
+```markdown
+![my_image](figures/sweep.png)
+```
+
 We have used W&B in our project for hyperparameter tuning using a sweep.yaml file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the 
 test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
 
