@@ -58,8 +58,6 @@ jobs:
         run: uv sync --all-extras --dev
 
       - name: Run tests
-        # env:
-        #   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run pytest tests
 
       - name: Enable caching
@@ -68,11 +66,7 @@ jobs:
           enable-cache: true
 
       - name: Check data statistics
-        # env:
-        #   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run src/wikipedia/dataset_statistics.py
 
       - name: Coverage report
-        # env:
-        #   GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run coverage report
