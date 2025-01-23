@@ -200,7 +200,8 @@ We filled out most of the cookiecutter template provided by the course but made 
 >
 > Answer:
 
-We did not use any linting for the project or anything for typing consistency. This would have been ideal but never entered out workflow. In a larger project this would have been vital. It is an important step for reproducability and readability espacially for larger projects where everyone has their own way of writing code. For example we can take the way to write functions and classes where you can easily distinguish between the two and gleen some function from them by the way they are written if consistent.
+While we used Ruff for our linting it was not integrated to a wide enough extent. It was exclusively used in the precommit commands.
+More explicit use would have been ideal for formating consistency. In a larger project this would have been vital. It is an important step for reproducability and readability espacially for larger projects where everyone has their own way of writing code. For example we can take the way to write functions and classes where you can easily distinguish between the two and gleen some function from them by the way they are written if consistent. Such consistency can be achieved with a good integration of Ruff.
 
 ## Version control
 
