@@ -1,0 +1,33 @@
+
+steps:
+
+####################################
+# Build and push API container image
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build API container image'
+  args: [
+    'build',
+    '.',
+    '-t',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image',
+    '--cache-from', 'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image:latest',
+    '-f',
+    'dockerfiles/api.dockerfile'
+  ]  
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push api container image'
+  args: [
+    'push',
+    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image'
+  ]
+
+
+options:
+  logging: CLOUD_LOGGING_ONLY
+serviceAccount: 'projects/$PROJECT_ID/serviceAccounts/mlops-proj-group3-build-servic@dtumlops-448012.iam.gserviceaccount.com'
+
+
+
+# Trigger image build with writing this in the terminal: gcloud builds submit --config=cloudbuild.yaml .   
+# Authenticate access with service account: gcloud auth activate-service-account --key-file=cloud/dtumlops-448012-f2134e26466c.json 
