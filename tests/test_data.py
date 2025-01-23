@@ -43,9 +43,9 @@ def test_split_masks(dataset, split):
     assert isinstance(mask, torch.BoolTensor)
     assert mask.sum().item() > 0
 
-def test_prepare_data_loaders():
+def test_prepare_data_loaders(dataset):
     """Test the data loaders preparation."""
-    train_loader, val_loader, test_loader = prepare_data_loaders()
+    train_loader, val_loader, test_loader = prepare_data_loaders(dataset.data, dataset.split_idx)
     assert train_loader is not None
     assert val_loader is not None
     assert test_loader is not None
@@ -53,8 +53,8 @@ def test_prepare_data_loaders():
     assert isinstance(val_loader, torch.utils.data.DataLoader)
     assert isinstance(test_loader, torch.utils.data.DataLoader)
 
-def test_prepare_test_loader():
+def test_prepare_test_loader(dataset):
     """Test the test loader preparation."""
-    test_loader = prepare_test_loader()
+    test_loader = prepare_test_loader(dataset.data)
     assert test_loader is not None
     assert isinstance(test_loader, torch.utils.data.DataLoader)
