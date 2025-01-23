@@ -69,3 +69,4 @@ urllib3==2.3.0
 wandb==0.19.3
 yarl==1.18.3
 google-cloud-storage==0.4.8
+httpx==0.28.1
