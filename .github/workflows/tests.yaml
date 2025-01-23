@@ -21,7 +21,7 @@ jobs:
     strategy:
       matrix:
         operating-system: ["ubuntu-latest", "macos-latest"]
-        python-version: ["3.11", "3.12"]
+        python-version: "3.12"
 
     steps:
       - name: Checkout code
@@ -48,3 +48,8 @@ jobs:
 
       - name: Check data statistics
         run: uv run src/wikipedia/dataset_statistics.py
+
+      - name: Coverage report
+        run: |
+        uv add coverage
+        uv run coverage report
