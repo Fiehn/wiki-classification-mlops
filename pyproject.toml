@@ -18,8 +18,10 @@ classifiers = [
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
+    "fastapi>=0.115.6",
     "gcloud>=0.18.3",
     "google-cloud>=0.34.0",
+    "google-cloud-aiplatform>=1.78.0",
     "google-cloud-secret-manager>=2.22.1",
     "google-cloud-storage>=2.19.0",
     "hydra-core>=1.3.2",
