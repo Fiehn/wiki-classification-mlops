@@ -461,7 +461,8 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 23 fill here ---
+Yes, we implemented an API that downloads the trained model from the Cloud Bucket and applies the trained weights and hyperparameters to the model architecture. ....... fortsæt her
+
 
 ### Question 24
 
