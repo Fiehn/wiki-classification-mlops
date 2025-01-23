@@ -144,6 +144,8 @@ s204617, s204623, s204070, s204605, s194645
 > Answer:
 
 We used the Pytorch Geometric framework combined with Pytorch Lightning for creating the model and training the Graph Neural Network. We used PyG to both get the data and create the model architecture.
+We chose to use PyG instead of other open source frameworks that are perhaps more developed like DAG, which is framework agnostic, because we assumed it would be well integrated with the other frameworks in the pytorch family like lightning.
+We used the data set available in the framework: WikiCS. With this we used the Dataloader available in the PyG framework and fed it to the lightning trainer.
 
 ## Coding environment
 
@@ -163,9 +165,11 @@ We used the Pytorch Geometric framework combined with Pytorch Lightning for crea
 >
 > Answer:
 
-We used UV to manage dependencies. It keeps track of dependencies, environment and python version throught the uv.lock file and the pyproject.toml automatically. To get a complete copy of our environment one would run the following while in the directory containing the two files:
+We used the open source [UV package manager](https://astral.sh/) from astral to manage dependencies and python environments. It keeps track of dependencies, environment and python version through the uv.lock file and the pyproject.toml automatically. To get a complete copy of our environment one would have to run the following while in the directory containing the two files:
 > pip install uv \
 > uv sync
+
+This would install uv initially and then uv sync would automatically look in the uv.lock file and pyproject.toml file for dependencies and python version. With this info it would initialize a virtual environment and install all the packages either from the local cache if available or the internet.
 
 ### Question 5
 
