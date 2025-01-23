@@ -73,7 +73,6 @@ def download_from_gcs(bucket_name, source_folder, destination_folder):
 
     return destination_folder
 
-
  # Download original data from GCS
 data_path = download_from_gcs("mlops-proj-group3-bucket", "torch_geometric_data", "data")
 data_module = WikiCS(root=data_path, is_undirected=True)
@@ -110,7 +109,7 @@ combined_features = np.vstack(all_features)
 # Convert combined features to a DataFrame
 current_df = pd.DataFrame(combined_features)
 
-# Debugging: Print shapes and column names
+#Print shapes and column names
 #print("Reference DataFrame Shape:", reference_df.shape)
 #print("Reference DataFrame Columns:", reference_df.columns.tolist())
 #print("Current DataFrame Shape:", current_df.shape)
