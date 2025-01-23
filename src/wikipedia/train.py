@@ -18,7 +18,7 @@ from google.cloud import secretmanager
     # os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-e5cfd43b6fd8.json"
 
 # Local imports
-from data import load_split_data, explore_splits, download_from_gcs, upload_model, download_file
+from data import load_split_data, explore_splits, download_from_gcs, upload_model, download_file, prepare_data_loaders, prepare_test_loader
 from model import NodeLevelGNN
 
 # Adjust verbosity
@@ -84,20 +84,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
                    num_epochs, batch_size, wandb_logger, model_checkpoint_callback, bucket_name):
     """Train and evaluate the model on a specific split.
     Save one model checkpoint per split."""
-    train_data = data.clone()
-    val_data = data.clone()
-    train_data.train_mask = data.train_mask[:, split_idx]  # 1D mask for training
-    train_data.val_mask = None  # Not needed during training
-    val_data.val_mask = data.val_mask[:, split_idx]  # 1D mask for validation
-    val_data.train_mask = None  # Not needed during validation
 
-    train_loader = DataLoader([train_data], batch_size=1, num_workers=-1, shuffle=False)
-    val_loader = DataLoader([val_data], batch_size=1, num_workers=-1)
-
-
-    # Initialize model
-    c_in = data.num_node_features
-    c_out = data.y.max().item() + 1
+    train_loader, val_loader, c_in, c_out = prepare_data_loaders(data, split_idx)
     model = initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name)
 
     checkpoint_callback = ModelCheckpoint(
@@ -131,9 +119,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     val_acc = val_results[0].get('val_acc', None) # more robust
     
     # Test
-    test_data = data.clone()  # test_data.test_mask remains as is
-    # Create a DataLoader for the test data (wrap in a list)
-    test_loader = DataLoader([test_data], batch_size=1, num_workers=7)
+    # Then you can use it in the code by adding:
+    test_loader = prepare_test_loader(data)
     test_results = trainer.test(ckpt_path=best_ckpt_path, dataloaders=test_loader, verbose=False)
     test_acc = test_results[0].get('test_acc', None)
 

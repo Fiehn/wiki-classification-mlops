@@ -5,6 +5,7 @@ import argparse
 import glob
 import os
 import shutil
+from torch_geometric.loader import DataLoader
 
 from google.cloud import storage
 from torch_geometric.datasets import WikiCS
@@ -74,6 +75,40 @@ def download_file(bucket_name, source_blob_name, destination_file_name):
 def load_split_data(root="data/"):
     dataset = WikiCS(root=root, is_undirected=True)
     return dataset
+
+def prepare_data_loaders(data, split_idx):
+    """
+    Prepare train and validation data loaders for a specific split.
+    
+    Args:
+        data: The original data object
+        split_idx: Index of the current split
+    
+    Returns:
+        tuple: (train_loader, val_loader, c_in, c_out)
+    """
+    train_data = data.clone()
+    val_data = data.clone()
+    train_data.train_mask = data.train_mask[:, split_idx]  # 1D mask for training
+    train_data.val_mask = None  # Not needed during training
+    val_data.val_mask = data.val_mask[:, split_idx]  # 1D mask for validation
+    val_data.train_mask = None  # Not needed during validation
+
+    train_loader = DataLoader([train_data], batch_size=1, num_workers=4, shuffle=False)
+    val_loader = DataLoader([val_data], batch_size=1, num_workers=4)
+
+    # Get model dimensions
+    c_in = data.num_node_features
+    c_out = data.y.max().item() + 1
+    
+    return train_loader, val_loader, c_in, c_out
+
+def prepare_test_loader(data):
+    """Prepare test data loader for model evaluation."""
+    test_data = data.clone()  # test_data.test_mask remains as is
+    # Create a DataLoader for the test data (wrap in a list)
+    test_loader = DataLoader([test_data], batch_size=1, num_workers=4)
+    return test_loader
 
 def explore_splits(dataset=None):
     if dataset is None:
