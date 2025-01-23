@@ -45,26 +45,26 @@ steps:
     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/test-image'
   ]
 
-####################################
-# Build and push API container image
-- name: 'gcr.io/cloud-builders/docker'
-  id: 'Build API container image'
-  args: [
-    'build',
-    '.',
-    '-t',
-    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image',
-    '--cache-from', 'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image:latest',
-    '-f',
-    'dockerfiles/api.dockerfile'
-  ]  
+# ####################################
+# # Build and push API container image
+# - name: 'gcr.io/cloud-builders/docker'
+#   id: 'Build API container image'
+#   args: [
+#     'build',
+#     '.',
+#     '-t',
+#     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image',
+#     '--cache-from', 'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image:latest',
+#     '-f',
+#     'dockerfiles/api.dockerfile'
+#   ]  
 
-- name: 'gcr.io/cloud-builders/docker'
-  id: 'Push api container image'
-  args: [
-    'push',
-    'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image'
-  ]
+# - name: 'gcr.io/cloud-builders/docker'
+#   id: 'Push api container image'
+#   args: [
+#     'push',
+#     'europe-west1-docker.pkg.dev/$PROJECT_ID/mlops-proj-group3-artifact/api-image'
+#   ]
 
 
 ####################################

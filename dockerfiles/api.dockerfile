@@ -36,6 +36,7 @@ RUN uv sync
 
 # print statements also go to terminal, not only logs
 ENV PYTHONUNBUFFERED=1 
+EXPOSE 8000
 
 ENTRYPOINT ["uv", "run"]
 CMD ["uvicorn", "src.wikipedia.api:app", "--host", "0.0.0.0", "--port", "8000"]
