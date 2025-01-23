@@ -443,7 +443,7 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 19 fill here ---
+[This figure](figures/cloud_storage.png) displays the cloud storage of our project, while this [this figure](figures/cloud_bucket.png) shows what our project bucket contains. The 'model' folder contain the best model per split as well as the best overall model (across splits). The two folders 'Prediction' and 'Userinput' are a result of our API, such that for each API call the associated user input and the final predictions were saved respectively. The last folder 'torch_geometric_data' contains our source data, both raw and processed.
 
 ### Question 20
 
@@ -452,7 +452,7 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 20 fill here ---
+[This figure](figures/artifact_docker.png) shows our three docker images, one for api, test and train respectively. As mentioned in question 15 the utilising the dockerfiles ensures portability and scalability.
 
 ### Question 21
 
@@ -461,7 +461,9 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 21 fill here ---
+!! INSERT PICTURE !!!
+
+[This figure](figures/cloud_build.png) shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
 
 ### Question 22
 
@@ -592,15 +594,19 @@ Yes, we implemented an API that downloads the trained model from the Cloud Bucke
 >
 > Answer:
 
-The diagram shows the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
+The diagram seen [here](figures/project_overview.png) illustrates the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
 
 **Version Control and Quality tests**
 To enforce collaboration and code quality Git and GitHub were employed for version control. These tools allowed multiple team members to work in parallel on different features using branches and pull requests. GitHub also served as the central repository for the entire project. Pytest was implemented to test and validate the codebase. Automated tests ensured that new features or changes did not break existing functionality. For checking our code, we implemented some workflows using git and pytest. 
 
 **Data**
-Initially, the WikiCS dataset was downloaded locally. To improve data versioning and accessibility, we uploaded the dataset to Google Cloud Storage (GCS). From this point onward, all models and training workflows relied on the cloud-stored dataset, ensuring consistent and centralized access to the data. We also utilized DVC (Data Version Control) to manage dataset versions locally and track changes in a structured way.
+Initially, the WikiCS dataset was downloaded locally. To improve data versioning and accessibility, we uploaded the dataset to Google Cloud Storage (GCS). From this point onward, all models and training workflows relied on the cloud-stored dataset, ensuring consistent and centralized access to the data. When storing the data in the cloud, versions of the data are automatically tracked, and since we didn't expect any changes to our data, we didn't add DVC explicitly. However as seen on the diagram, it would have happened there.
 
-Moving beyond local development, we integrated several cloud-based services to streamline training, deployment, and monitoring processes. As mentioned we used GCS to host the dataset and trained models. We moreover used Google Artifact Registry to store the Docker images created during development.These images were used for cloud-based training and running our sweeps for hyperparameter tuning. Finally we used vertex AI as the primary platform for training and deploying machine learning models. After training, the models were uploaded to Vertex AI for use in production.
+Moving beyond local development, we integrated several cloud-based services to streamline training, deployment, and monitoring processes. As mentioned we used GCS to host the dataset and trained models. We moreover used Google Artifact Registry to store the Docker images created during development. These images were used for cloud-based training and running our sweeps for hyperparameter tuning. Finally we used vertex AI as the primary platform for training and deploying machine learning models. After training, the models were uploaded to Vertex AI for use in production.
+
+Weights and Biases (Wandb) were used in parallel to the training, logging all relevant performance metrics. Question 14 displays some of the logged performances. 
+
+Finally, FastAPI was implemented to enable users to input data into our model and receive predictions based on the best-performing version. To keep track of potential changes in the user input, Evidently AI was implemented. Evidently AI created a local report, comparing the user input to the original data stored in GC cloud storage. 
 
 ### Question 30
 
@@ -633,13 +639,13 @@ During the project, setting up GCP and making everything work seamlessly in the 
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
-FEEL FREE TO CHANGE, NOT SURE AT ALL ABOUT THE SPLIT!!!
 
 Student s204617 and s204623 was in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
 Student s204617 has been in charge of setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
 Students s204070 and s204617 building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on other papers and optimising the hyperparameters with a wandb sweep. 
 Student s204070 has made the tasks.py to create invoke commands for everything.
-Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test).
+Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test). 
+Student 204605 has been in charge of implementing Evidently AI.
 Student s204617 and s204623 has been in charge of GCP. 
 Student s194645 has been in charge of API.
 
