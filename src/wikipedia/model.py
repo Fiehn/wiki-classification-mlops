@@ -94,14 +94,14 @@ class NodeLevelGNN(pl.LightningModule):
         elif mode == "test":
             mask = data.test_mask
         else:
-            assert False, f"Unknown forward mode: {mode}"
+            raise ValueError(f"Unknown forward mode: {mode}")
 
         # Convert 2D mask to 1D if needed
         if mask.dim() == 2:
             mask = mask[:, 0]  # Take first split
 
         # Shape checks for debugging
-        # assert mask.dim() == 1, f"Mask should be 1D, got shape {mask.shape}"
+        #assert mask.dim() == 1, f"Mask should be 1D, got shape {mask.shape}"
         # assert mask.shape[0] == x.shape[0], f"Mask length {mask.shape[0]} doesn't match number of nodes {x.shape[0]}"
         
         loss = self.loss_module(x[mask], data.y[mask])
@@ -117,8 +117,10 @@ class NodeLevelGNN(pl.LightningModule):
             optimizer = optim.NAdam(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
         elif optimizer_name == "RMSprop":
             optimizer = optim.RMSprop(self.parameters(), lr=learning_rate, weight_decay=weight_decay)
+        elif optimizer_name == "SGD":
+            raise NotImplementedError("SGD not optimal for GNNs")
         else:
-            assert False, f"Unknown optimizer: {optimizer_name}"
+            raise ValueError(f"Unknown optimizer: {optimizer_name}")
         return optimizer
 
     def training_step(self, batch, batch_idx):

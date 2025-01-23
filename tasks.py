@@ -65,7 +65,7 @@ def train(ctx: Context) -> None:
 @task
 def trainfast(ctx: Context) -> None:
     """Train model with fast flag."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/train.py --num-splits=1", echo=True, pty=not WINDOWS)
+    ctx.run(f"uv run src/{PROJECT_NAME}/train.py --num-splits=1 --num-epochs=10", echo=True, pty=not WINDOWS)
 
 #python src/wikipedia/train.py mlops-proj-group3-bucket torch_geometric_data
 @task

@@ -64,6 +64,13 @@ class DeviceInfoCallback(pl.Callback):
 
 def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name):
     """Initialize the model and optimizer."""
+    # Input validation
+    if hidden_channels <= 0:
+        raise ValueError(f"hidden_channels must be positive, got {hidden_channels}")
+    if hidden_layers <= 0:
+        raise ValueError(f"hidden_layers must be positive, got {hidden_layers}")
+    if not isinstance(optimizer_name, str) or optimizer_name not in ["Adam", "AdamW", "NAdam", "RMSprop", "SGD"]:
+        raise ValueError(f"Unknown optimizer: {optimizer_name}")
 
     model = NodeLevelGNN(
         c_in=c_in,
@@ -201,9 +208,9 @@ def train_model(
     data = data_module[0]
     
     # Param to tell how many splits to train on - check for invalid input
-    if num_splits >= data_module[0].train_mask.shape[1]:
+    if num_splits >= data.train_mask.shape[1]:
         # Run over all 20 splits and then average the results
-        num_splits = data_module[0].train_mask.shape[1] 
+        num_splits = data.train_mask.shape[1] 
     else:
         num_splits = num_splits
     print(f"Total splits: {num_splits}")
