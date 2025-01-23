@@ -80,13 +80,13 @@ will check the repositories and the code to verify your answers.
 * [x] Add a linting step to your continuous integration (M17)
 * [x] Add pre-commit hooks to your version control setup (M18)
 * [ ] Add a continues workflow that triggers when data changes (M19)
-* [ ] Add a continues workflow that triggers when changes to the model registry is made (M19)
-* [ ] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
-* [ ] Create a trigger workflow for automatically building your docker images (M21)
-* [ ] Get your model training in GCP using either the Engine or Vertex AI (M21)
-* [ ] Create a FastAPI application that can do inference using your model (M22)
-* [ ] Deploy your model in GCP using either Functions or Run as the backend (M23)
-* [ ] Write API tests for your application and setup continues integration for these (M24)
+* [x] Add a continues workflow that triggers when changes to the model registry is made (M19)
+* [x] Create a data storage in GCP Bucket for your data and link this with your data version control setup (M21)
+* [x] Create a trigger workflow for automatically building your docker images (M21)
+* [x] Get your model training in GCP using either the Engine or Vertex AI (M21)
+* [x] Create a FastAPI application that can do inference using your model (M22)
+* [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
+* [x] Write API tests for your application and setup continues integration for these (M24)
 * [ ] Load test your application (M24)
 * [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
 * [ ] Create a frontend for your API (M26)
@@ -106,10 +106,10 @@ will check the repositories and the code to verify your answers.
 
 * [ ] Write some documentation for your application (M32)
 * [ ] Publish the documentation to GitHub Pages (M32)
-* [ ] Revisit your initial project description. Did the project turn out as you wanted?
-* [ ] Create an architectural diagram over your MLOps pipeline
+* [x] Revisit your initial project description. Did the project turn out as you wanted?
+* [x] Create an architectural diagram over your MLOps pipeline
 * [ ] Make sure all group members have an understanding about all parts of the project
-* [ ] Uploaded all your code to GitHub
+* [x] Uploaded all your code to GitHub
 
 ## Group information
 
@@ -594,7 +594,7 @@ Yes, we implemented an API that downloads the trained model from the Cloud Bucke
 >
 > Answer:
 
-The diagram seen [here](figures/project_overview.png) illustrates the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
+[This diagram](figures/project_overview.png) illustrates the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
 
 **Version Control and Quality tests**
 To enforce collaboration and code quality Git and GitHub were employed for version control. These tools allowed multiple team members to work in parallel on different features using branches and pull requests. GitHub also served as the central repository for the entire project. Pytest was implemented to test and validate the codebase. Automated tests ensured that new features or changes did not break existing functionality. For checking our code, we implemented some workflows using git and pytest. 
@@ -647,7 +647,7 @@ Student s204070 has made the tasks.py to create invoke commands for everything.
 Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test). 
 Student 204605 has been in charge of implementing Evidently AI.
 Student s204617 and s204623 has been in charge of GCP. 
-Student s194645 has been in charge of API.
+Student s204617, s204623 and s194645 has been in charge of API.
 
 We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
 All members have contributed to the project and writing the report. Overall it has been a collaborative process making the project.
