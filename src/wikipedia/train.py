@@ -45,9 +45,10 @@ def get_secret(secret_name):
     return secret
 
 
-#if "WANDB_API_KEY" in os.environ or wandb.api.api_key == "":
-if os.environ.get("WANDB_API_KEY") == "" or os.environ.get("WANDB_API_KEY") == None or wandb.api.api_key == "":
-#if os.environ.get("WANDB_API_KEY") == None:        
+# if os.environ.get("WANDB_API_KEY") == None: 
+# if "WANDB_API_KEY" in os.environ or wandb.api.api_key == "":
+if os.environ.get("WANDB_API_KEY") == "" or os.environ.get("WANDB_API_KEY") == None or wandb.api.api_key == "":       
+
     # Get the WandB API key from Secret Manager
     wandb_api_key = get_secret("WANDB_API_KEY")
 

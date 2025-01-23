@@ -129,7 +129,7 @@ will check the repositories and the code to verify your answers.
 >
 > Answer:
 
-s204617, s204623, s204070, s204605, 
+s204617, s204623, s204070, s204605, s194645
 
 ### Question 3
 > **A requirement to the project is that you include a third-party package not covered in the course. What framework**
@@ -163,8 +163,7 @@ We used the Pytorch Geometric framework combined with Pytorch Lightning for crea
 >
 > Answer:
 
-We used UV to manage dependencies. It keeps track of dependencies, environment and python version throught the uv.lock file and the pyproject.toml automatically.
-To get a complete copy of our environment one would run the following while in the directory containing the two files:
+We used UV to manage dependencies. It keeps track of dependencies, environment and python version throught the uv.lock file and the pyproject.toml automatically. To get a complete copy of our environment one would run the following while in the directory containing the two files:
 > pip install uv \
 > uv sync
 
@@ -182,7 +181,7 @@ To get a complete copy of our environment one would run the following while in t
 >
 > Answer:
 
-We filled out most parts of the cookiecutter template, however we deviated by creating a folder for cloud build \cloud and not filling out parts such as \notebooks. 
+We filled out most parts of the cookiecutter template, however we deviated by creating a folder for cloud build "\cloud" and not filling out parts such as \notebooks. 
 
 ### Question 6
 
@@ -301,7 +300,7 @@ To enforce good coding practices we have utilised ruff in our pre-commit.
 We initially tested manually with Typer and Invoke
 > invoke train --lr 0.001 ...
 
-But the majority of hyperparameter tuning and testing later in the project was done using Weights and Biases sweep file.
+But the majority of hyperparameter tuning and testing later in the project was done using Weights and Biases sweep.yaml file.
 
 ### Question 13
 
@@ -333,7 +332,9 @@ But the majority of hyperparameter tuning and testing later in the project was d
 >
 > Answer:
 
---- question 14 fill here ---
+**INSERT PICTURES** 
+We have used W&B in our project for hyperparameter tuning using a sweep.yaml file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the 
+test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
 
 ### Question 15
 
@@ -460,7 +461,8 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 23 fill here ---
+Yes, we implemented an API that downloads the trained model from the Cloud Bucket and applies the trained weights and hyperparameters to the model architecture. ....... fortsæt her
+
 
 ### Question 24
 
@@ -558,7 +560,15 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 29 fill here ---
+The diagram shows the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
+
+**Version Control and Quality tests**
+To enforce collaboration and code quality Git and GitHub were employed for version control. These tools allowed multiple team members to work in parallel on different features using branches and pull requests. GitHub also served as the central repository for the entire project. Pytest was implemented to test and validate the codebase. Automated tests ensured that new features or changes did not break existing functionality. For checking our code, we implemented some workflows using git and pytest. 
+
+**Data**
+Initially, the WikiCS dataset was downloaded locally. To improve data versioning and accessibility, we uploaded the dataset to Google Cloud Storage (GCS). From this point onward, all models and training workflows relied on the cloud-stored dataset, ensuring consistent and centralized access to the data. We also utilized DVC (Data Version Control) to manage dataset versions locally and track changes in a structured way.
+
+Moving beyond local development, we integrated several cloud-based services to streamline training, deployment, and monitoring processes. As mentioned we used GCS to host the dataset and trained models. We moreover used Google Artifact Registry to store the Docker images created during development.These images were used for cloud-based training and running our sweeps for hyperparameter tuning. Finally we used vertex AI as the primary platform for training and deploying machine learning models. After training, the models were uploaded to Vertex AI for use in production.
 
 ### Question 30
 
@@ -572,7 +582,8 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 30 fill here ---
+During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud. However once it we figured everything out with the right permission, service account and credentials, it worked very well and we therefore managed to do all of our training and hyperparameter tuning in the cloud.
+
 
 ### Question 31
 
@@ -590,4 +601,15 @@ For the project, we have used the following GCP services:
 > *We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.*
 > Answer:
 
---- question 31 fill here ---
+FEEL FREE TO CHANGE, NOT SURE AT ALL ABOUT THE SPLIT!!!
+
+Student s204617 and s204623 was in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
+Student s204617 has been in charge of setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
+Students s204070 and s204617 building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on other papers and optimising the hyperparameters with a wandb sweep. 
+Student s204070 has made the tasks.py to create invoke commands for everything.
+Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test).
+Student s204617 and s204623 has been in charge of GCP. 
+Student s194645 has been in charge of API.
+
+We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
+All members have contributed to the project and writing the report. Overall it has been a collaborative process making the project.
