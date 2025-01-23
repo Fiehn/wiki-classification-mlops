@@ -42,19 +42,20 @@ jobs:
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
-          credentials_json: '${{ secrets.GDRIVE_CREDENTIALS_DATA }}'
+          credentials_json: '${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}'
+          
 
       # **Set Google Cloud Project (Optional)**
       - name: Set Google Cloud Project
         run: |
           gcloud config set project dtumlops-448012
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
 
 
       - name: Run tests
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run pytest tests
 
       - name: Enable caching
@@ -64,10 +65,10 @@ jobs:
 
       - name: Check data statistics
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run src/wikipedia/dataset_statistics.py
 
       - name: Coverage report
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GDRIVE_CREDENTIALS_DATA }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
         run: uv run coverage report
