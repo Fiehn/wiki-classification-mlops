@@ -50,6 +50,4 @@ jobs:
         run: uv run src/wikipedia/dataset_statistics.py
 
       - name: Coverage report
-        run: |
-        uv add coverage
-        uv run coverage report
+        run: uv run coverage report
