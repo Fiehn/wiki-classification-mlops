@@ -553,7 +553,7 @@ For deployment we wrapped our model into application using [FastAPI](https://fas
 >
 > Answer:
 
---- question 25 fill here ---
+Yes, we performed both unit testing and load testing for the API. The [unit test](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) simulates user API calls, which are designed to be similar to those expected to be done by a potential user. 
 
 ### Question 26
 
@@ -684,9 +684,9 @@ Student s204617 and s204617 have been in charge of continuous integration (unit 
 Students s204070 and s204617 built the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on others papers and optimising the hyperparameters with a wandb sweep. 
 Student s204070 has made the tasks.py to create invoke commands for everything.
 Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test). 
-Student 204605 has been in charge of implementing Evidently AI.
-Student s204617 and s204623 has been in charge of GCP. 
-Student s204617, s204623 and s194645 has been in charge of API.
+Student 204605 and s204617 have been in charge of implementing Evidently AI.
+Student s204617 and s204623 have been in charge of GCP. 
+Student s204617, s204623 and s194645 have been in charge of API.
 
 
 We have used ChatGPT (and other gen ai's) to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
