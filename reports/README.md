@@ -93,9 +93,9 @@ will check the repositories and the code to verify your answers.
 
 ### Week 3
 
-* [ ] Check how robust your model is towards data drifting (M27)
+* [x] Check how robust your model is towards data drifting (M27)
 * [ ] Deploy to the cloud a drift detection API (M27)
-* [ ] Instrument your API with a couple of system metrics (M28)
+* [x] Instrument your API with a couple of system metrics (M28)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
 * [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
@@ -108,7 +108,7 @@ will check the repositories and the code to verify your answers.
 * [ ] Publish the documentation to GitHub Pages (M32)
 * [x] Revisit your initial project description. Did the project turn out as you wanted?
 * [x] Create an architectural diagram over your MLOps pipeline
-* [ ] Make sure all group members have an understanding about all parts of the project
+* [x] Make sure all group members have an understanding about all parts of the project
 * [x] Uploaded all your code to GitHub
 
 ## Group information
@@ -477,13 +477,10 @@ The above image shows our three docker images, one for api, test and train respe
 >
 > Answer:
 
-!! INSERT PICTURE !!!
-
 ```markdown
-
+![cloud_build](figures/cloud_build.png)
 ```
-
-[This figure](figures/cloud_build.png) shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
+ The image shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
 
 ### Question 22
 
@@ -654,7 +651,10 @@ We implemented a driftreport script that could generate a datadrift report as a 
 >
 > Answer:
 
-[This diagram](figures/projectOverview.png) 
+```markdown
+![over_view](figures/projectOverview.png) 
+```
+
 The project takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a uv.lock and pyproject.toml files, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows.
 
 **Version Control and Quality tests**
