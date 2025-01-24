@@ -128,6 +128,7 @@ def test_train_on_split(mock_trainer, mock_checkpoint_callback):
                     bucket_name="test-bucket",
                     group_name="test-group",
                     enable_early_stopping=True, 
+                    logging=False
                 )
 
     assert isinstance(val_acc, float)

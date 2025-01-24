@@ -27,8 +27,8 @@ def prepare_data_loaders(data, split_idx):
     val_data.val_mask = data.val_mask[:, split_idx]  # 1D mask for validation
     val_data.train_mask = None  # Not needed during validation
 
-    train_loader = DataLoader([train_data], batch_size=1, num_workers=4, shuffle=False)
-    val_loader = DataLoader([val_data], batch_size=1, num_workers=4)
+    train_loader = DataLoader([train_data], batch_size=1, num_workers=3, shuffle=False)
+    val_loader = DataLoader([val_data], batch_size=1, num_workers=3)
 
     # Get model dimensions
     c_in = data.num_node_features
@@ -40,7 +40,7 @@ def prepare_test_loader(data):
     """Prepare test data loader for model evaluation."""
     test_data = data.clone()  # test_data.test_mask remains as is
     # Create a DataLoader for the test data (wrap in a list)
-    test_loader = DataLoader([test_data], batch_size=1, num_workers=4)
+    test_loader = DataLoader([test_data], batch_size=1, num_workers=3)
     return test_loader
 
 def explore_splits(dataset=None):

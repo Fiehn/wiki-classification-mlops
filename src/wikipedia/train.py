@@ -53,26 +53,30 @@ def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learn
     return model
 
 def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name, 
-                   num_epochs, batch_size, model_checkpoint_callback, bucket_name, group_name, enable_early_stopping):
+                   num_epochs, batch_size, model_checkpoint_callback, bucket_name, group_name, enable_early_stopping, logging: bool = True):
     """Train and evaluate the model on a specific split.
     Save one model checkpoint per split."""
 
-    # Generate a unique run name for each split
-    run_name = f"{group_name}_split_{split_idx}_{wandb.util.generate_id()}"
-    # Initialize WandbLogger
-    wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025", group=group_name, name=run_name)
-    # Log parameters
-    wandb_logger.experiment.config.update({
-        "hidden_channels": hidden_channels,
-        "hidden_layers": hidden_layers,
-        "dropout": dropout,
-        "learning_rate": learning_rate,
-        "weight_decay": weight_decay,
-        "num_epochs": num_epochs,
-        "batch_size": batch_size,
-        "optimizer_name": optimizer_name,
-        "model_checkpoint_callback": model_checkpoint_callback,
-    })
+    if logging:
+        # Generate a unique run name for each split
+        run_name = f"{group_name}_split_{split_idx}_{wandb.util.generate_id()}"
+        # Initialize WandbLogger
+        wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025", group=group_name, name=run_name)
+        # Log parameters
+        wandb_logger.experiment.config.update({
+            "hidden_channels": hidden_channels,
+            "hidden_layers": hidden_layers,
+            "dropout": dropout,
+            "learning_rate": learning_rate,
+            "weight_decay": weight_decay,
+            "num_epochs": num_epochs,
+            "batch_size": batch_size,
+            "optimizer_name": optimizer_name,
+            "model_checkpoint_callback": model_checkpoint_callback,
+        })
+    else: 
+        wandb_logger = None
+        run_name = "test_run"
 
     train_loader, val_loader, c_in, c_out = prepare_data_loaders(data, split_idx)
     model = initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name)
@@ -130,7 +134,9 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     }, f"models/{run_name}_model.pt")
 
     upload_file_to_gcs(bucket_name, f"models/{run_name}_model.pt")
-    wandb.finish()
+    
+    if logging:
+        wandb.finish()
 
     return val_acc, test_acc
 
