@@ -11,9 +11,7 @@ Group 3 consists of: Clara Regine Hoeg Kold, Emma Christine Berggrein Andersen, 
 * **Models**: In this implementation, Graph Neural Network (GNN) models with various Graph Convolutional Network (GCN) layers is utilized. 
 
 ## Project flowchart
-```markdown
-![projectOverview](reports/figures/projectOverview.png)
-```
+![projectOverview](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/projectOverview.png)
 
 ## WandB report
 Latest Weights and Biases report [here](https://wandb.ai/mlops2025/wiki_classification?nw=nwusers204623). 
