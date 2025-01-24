@@ -40,7 +40,7 @@ def get_secret(secret_name):
     secret = response.payload.data.decode('UTF-8')
     return secret
 
-if "WANDB_API_KEY" in os.environ or wandb.api.api_key == "":
+if "WANDB_API_KEY" not in os.environ or wandb.api.api_key == "":
         
     # Get the WandB API key from Secret Manager
     wandb_api_key = get_secret("WANDB_API_KEY")
@@ -82,9 +82,24 @@ def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learn
     return model
 
 def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name, 
-                   num_epochs, batch_size, wandb_logger, model_checkpoint_callback, bucket_name):
+                   num_epochs, batch_size, model_checkpoint_callback, bucket_name, group_name):
     """Train and evaluate the model on a specific split.
     Save one model checkpoint per split."""
+
+    # Initialize WandbLogger
+    wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025", group=group_name, name=f"{group_name}_split_{split_idx}")
+    # Log parameters
+    wandb_logger.experiment.config.update({
+        "hidden_channels": hidden_channels,
+        "hidden_layers": hidden_layers,
+        "dropout": dropout,
+        "learning_rate": learning_rate,
+        "weight_decay": weight_decay,
+        "num_epochs": num_epochs,
+        "batch_size": batch_size,
+        "optimizer_name": optimizer_name,
+        "model_checkpoint_callback": model_checkpoint_callback,
+    })
 
     train_loader, val_loader, c_in, c_out = prepare_data_loaders(data, split_idx)
     model = initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name)
@@ -111,7 +126,6 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         log_every_n_steps=1,
     )
 
-
     trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     #val_acc = trainer.callback_metrics.get("val_acc", None) # Relies on intermediate logging - limited to last epoch
 
@@ -120,24 +134,9 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     val_results = trainer.validate(ckpt_path=best_ckpt_path, dataloaders=val_loader, verbose=False)
     val_acc = val_results[0].get('val_acc', None) # more robust
     
-    # Test
-    # Then you can use it in the code by adding:
     test_loader = prepare_test_loader(data)
     test_results = trainer.test(ckpt_path=best_ckpt_path, dataloaders=test_loader, verbose=False)
     test_acc = test_results[0].get('test_acc', None)
-
-    # #Save the model as a W&B artifact
-    # artifact = wandb.Artifact('model', type='model', metadata=dict({
-    #     "Accuracies": trainer.callback_metrics,
-    #        "hidden_channels": hidden_channels,
-    #        "hidden_layers": hidden_layers,
-    #        "dropout": dropout,
-    #        "learning_rate": learning_rate,
-    #        "num_epochs": num_epochs,
-    #        "batch_size": batch_size,
-    #    }))
-    # artifact.add_file('models/model.pt')
-    #wandb.log_artifact(artifact, aliases=["latest_model"])
 
     # Save the model with hyperparameters
     torch.save({
@@ -155,6 +154,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     }, f"models/split_{split_idx}_model.pt")
 
     upload_model(bucket_name, f"models/split_{split_idx}_model.pt")
+    wandb.finish()
 
     return val_acc, test_acc
 
@@ -169,7 +169,8 @@ def train_model(
     dropout: float = typer.Option(0.3236, help="Dropout rate"),
     learning_rate: float = typer.Option(0.001666, help="Learning rate"),
     weight_decay: float = typer.Option(1e-4, help="Weight decay"),
-    num_epochs: int = typer.Option(200, help="Number of epochs"),
+    num_epochs: int = typer.Option(300, help="Number of epochs"),
+    num_splits: int = typer.Option(20, help="Number of splits to train on"),
     batch_size: int = typer.Option(11701, help="Batch size"),
     optimizer_name: str = typer.Option("Adam", help="Optimizer name"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
@@ -178,23 +179,8 @@ def train_model(
     Main training function for both standalone runs and W&B sweeps.
     """
     pl.seed_everything(42)
-
     wandb.login()
-
-    # Initialize WandbLogger
-    wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025")
-    # Log parameters
-    wandb_logger.experiment.config.update({
-        "hidden_channels": hidden_channels,
-        "hidden_layers": hidden_layers,
-        "dropout": dropout,
-        "learning_rate": learning_rate,
-        "weight_decay": weight_decay,
-        "num_epochs": num_epochs,
-        "batch_size": batch_size,
-        "optimizer_name": optimizer_name,
-        "model_checkpoint_callback": model_checkpoint_callback,
-    })
+    group_name = wandb.util.generate_id()
 
     # Download data from GCS
     data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
@@ -205,16 +191,7 @@ def train_model(
     if num_splits >= data.train_mask.shape[1]:
         # Run over all 20 splits and then average the results
         num_splits = data.train_mask.shape[1] 
-    else:
-        num_splits = num_splits
-
     print(f"Total splits: {num_splits}")
-
-    # early_stop_callback = EarlyStopping(
-    #     monitor="val_acc",
-    #     mode="max",
-    #     patience=10  # adjust as needed
-    # )
 
     val_accuracies = []
     test_accuracies = []
@@ -222,23 +199,19 @@ def train_model(
         print(f"Training on split {split}")
         val_acc, test_acc = train_on_split(
             data, split, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name, num_epochs,
-            batch_size, wandb_logger, model_checkpoint_callback, bucket_name)
+            batch_size, model_checkpoint_callback, bucket_name, group_name)
         val_accuracies.append(val_acc)
         test_accuracies.append(test_acc)
-    
-
-    # Clean up local data folder
-    # shutil.rmtree(local_data_folder, ignore_errors=True)
-    # print(f"Cleaned up local folder: {local_data_folder}")
 
     # Log average accuracy
     avg_val_acc = sum(val_accuracies) / len(val_accuracies)
     avg_test_acc = sum(test_accuracies) / len(test_accuracies)
-    print(f"Average validation accuracy across splits: {avg_val_acc:.4f}")
-    print(f"Average test accuracy across splits: {avg_test_acc:.4f}")
-    wandb.log({"avg_val_acc": avg_val_acc, "avg_test_acc": avg_test_acc}) # , batch_size=data.num_nodes 
-    # give the best hyperparameters
-
+    # Log to WandB
+    wandb.init(project="wiki_classification", entity="mlops2025", group=group_name, name=f"{group_name}_summary")
+    wandb.log({
+        "avg_val_acc": avg_val_acc,
+        "avg_test_acc": avg_test_acc,
+    })
     wandb.finish()
 
 if __name__ == "__main__":
