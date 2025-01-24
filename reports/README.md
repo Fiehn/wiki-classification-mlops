@@ -74,7 +74,7 @@ will check the repositories and the code to verify your answers.
 
 * [x] Write unit tests related to the data part of your code (M16)
 * [x] Write unit tests related to model construction and or model training (M16)
-* [ ] Calculate the code coverage (M16)
+* [x] Calculate the code coverage (M16)
 * [x] Get some continuous integration running on the GitHub repository (M17)
 * [x] Add caching and multi-os/python/pytorch testing to your continuous integration (M17)
 * [x] Add a linting step to your continuous integration (M17)
@@ -93,9 +93,9 @@ will check the repositories and the code to verify your answers.
 
 ### Week 3
 
-* [ ] Check how robust your model is towards data drifting (M27)
+* [x] Check how robust your model is towards data drifting (M27)
 * [ ] Deploy to the cloud a drift detection API (M27)
-* [ ] Instrument your API with a couple of system metrics (M28)
+* [x] Instrument your API with a couple of system metrics (M28)
 * [ ] Setup cloud monitoring of your instrumented application (M28)
 * [ ] Create one or more alert systems in GCP to alert you if your app is not behaving correctly (M28)
 * [ ] If applicable, optimize the performance of your data loading using distributed data loading (M29)
@@ -108,7 +108,7 @@ will check the repositories and the code to verify your answers.
 * [ ] Publish the documentation to GitHub Pages (M32)
 * [x] Revisit your initial project description. Did the project turn out as you wanted?
 * [x] Create an architectural diagram over your MLOps pipeline
-* [ ] Make sure all group members have an understanding about all parts of the project
+* [x] Make sure all group members have an understanding about all parts of the project
 * [x] Uploaded all your code to GitHub
 
 ## Group information
@@ -143,9 +143,7 @@ s204617, s204623, s204070, s204605, s194645
 >
 > Answer:
 
-We used the Pytorch Geometric framework combined with Pytorch Lightning for creating the model and training the Graph Neural Network. We used PyG to both get the data and create the model architecture.
-We chose to use PyG instead of other open source frameworks that are perhaps more developed like DAG, which is framework agnostic, because we assumed it would be well integrated with the other frameworks in the pytorch family like lightning.
-We used the data set available in the framework: WikiCS. With this we used the Dataloader available in the PyG framework and fed it to the lightning trainer.
+We used the Pytorch Geometric framework combined with Pytorch Lightning for creating the model and training the Graph Neural Network. We used PyG to both get the data and create the model architecture. We chose to use PyG instead of other open source frameworks that are perhaps more developed like DAG, which is framework agnostic, because we assumed it would be well integrated with the other frameworks in the pytorch family like lightning. We used the data set available in the framework: WikiCS. With this we used the Dataloader available in the PyG framework and fed it to the lightning trainer.
 
 ## Coding environment
 
@@ -170,7 +168,7 @@ We used the open source [UV package manager](https://astral.sh/) from astral to 
 pip install uv \
 uv sync
 ```
-This would install uv initially and then uv sync would automatically look in the uv.lock file and pyproject.toml file for dependencies and python version. With this info it would initialize a virtual environment and install all the packages either from the local cache if available or the internet.
+This would install uv initially and then uv sync would automatically look in the `uv.lock` file and `pyproject.toml` file for dependencies and python version. With this info it would initialize a virtual environment and install all the packages either from the local cache if available or the internet.
 
 ### Question 5
 
@@ -201,8 +199,7 @@ We filled out most of the cookiecutter template provided by the course but made 
 >
 > Answer:
 
-While we used Ruff for our linting it was not integrated to a wide enough extent. It was exclusively used in the precommit commands.
-More explicit use would have been ideal for formating consistency. In a larger project this would have been vital. It is an important step for reproducability and readability espacially for larger projects where everyone has their own way of writing code. For example we can take the way to write functions and classes where you can easily distinguish between the two and gleen some function from them by the way they are written if consistent. Such consistency can be achieved with a good integration of Ruff.
+While we used Ruff for our linting it was not integrated to a wide enough extent. It was exclusively used in the precommit commands. More explicit use would have been ideal for formating consistency. In a larger project this would have been vital. It is an important step for reproducability and readability espacially for larger projects where everyone has their own way of writing code. For example we can take the way to write functions and classes where you can easily distinguish between the two and gleen some function from them by the way they are written if consistent. Such consistency can be achieved with a good integration of Ruff.
 
 ## Version control
 
@@ -251,7 +248,7 @@ Our current total coverage is 52% if we only look at the 4 major files. If we ta
 >
 > Answer:
 
-We heavily relied on branches for feature development. We created a new branch for each feature being developed and then once the feature was working it was merged into the main branch via a pull request. This helped to separate the work and ensure that there was always working code on the main branch (disregarding uncaught errors and build failures). All merges to main were made with PR's to check that all code passed the appropriate tests before being committed to main. Then when merge conflicts appeared we made sure to have at least one other developer to review the pull request before admitting it.
+We heavily relied on branches for feature development. We created a new branch for each feature being developed and then once the feature was working it was merged into the main branch via a pull request, and the branch was deleted. This helped to separate the work and ensure that there was always working code on the main branch (disregarding uncaught errors and build failures). All merges to main were made with PR's to check that all code passed the appropriate tests before being committed to main. Then when merge conflicts appeared we made sure to have at least one other developer to review the pull request before admitting it.
 
 ### Question 10
 
@@ -266,8 +263,7 @@ We heavily relied on branches for feature development. We created a new branch f
 >
 > Answer:
 
-During the project, we did not explicitly use DVC for data version control. Our workflow involved downloading the WikiCS dataset from Torch-Geometric and storing it in a bucket on Google Cloud Platform (GCP). By storing the data on GCP, we achieved a basic form of version control through the bucket's inherent capabilities. However, since our dataset was static and we did not anticipate any changes, we did not find the need to use DVC directly.
-That said, using DVC could have been beneficial in cases where datasets are frequently updated or when experiments require tracking changes to datasets alongside code versions.
+During the project, we did not explicitly use DVC for data version control. Our workflow involved downloading the WikiCS dataset from Torch-Geometric and storing it in a bucket on Google Cloud Platform (GCP). By storing the data on GCP, we achieved a basic form of version control through the bucket's inherent capabilities. However, since our dataset was static and we did not anticipate any changes, we did not find the need to use DVC directly. That said, using DVC could have been beneficial in cases where datasets are frequently updated or when experiments require tracking changes to datasets alongside code versions.
 
 ### Question 11
 
@@ -285,9 +281,7 @@ That said, using DVC could have been beneficial in cases where datasets are freq
 > Answer:
 
 For continuoues integration we have made 3 tests, which respectively tests the data structure, our model and the training of our model. The three tests are all included in the 'tests' folder. As the group members are using different operating systems and versions of python, we have set up the tests such that they run for both "ubuntu-latest" and "macos-latest", as well as a single version of python. This is reflected in the .github/workflows/tests.yaml file. 
-To enforce good coding practices we have utilised ruff for linting in our pre-commit. Other pre-commits that ensure that uv.lock exists and prints a requirements.txt for anyone not wanting to use uv for dependencies these can be seen in the [pre-commit file](https://github.com/Fiehn/wiki-classification-mlops/blob/main/.pre-commit-config.yaml) with some custom actions added in the [uv-package-check.sh](https://github.com/Fiehn/wiki-classification-mlops/blob/main/uv-package-check.sh).
-We attempted to make it standard practice to run pre-commit before any commit but there was nothing set up to enforce this.
-We set up a trigger to build the test and train docker builds in GCP whenever there is a push to main along with this we set up continuous deployment of the api docker in cloud run again at a push to main.
+To enforce good coding practices we have utilised ruff for linting in our pre-commit. Other pre-commits that ensure that uv.lock exists and prints a requirements.txt for anyone not wanting to use uv for dependencies these can be seen in the [pre-commit file](https://github.com/Fiehn/wiki-classification-mlops/blob/main/.pre-commit-config.yaml) with some custom actions added in the [uv-package-check.sh](https://github.com/Fiehn/wiki-classification-mlops/blob/main/uv-package-check.sh). We attempted to make it standard practice to run pre-commit before any commit but there was nothing set up to enforce this. We set up a trigger to build the test and train docker builds in GCP whenever there is a push to main along with this we set up continuous deployment of the api docker in cloud run again at a push to main.
 
 An example of a triggered github action workflow can be seen on the main branch or by following the [link](https://github.com/Fiehn/wiki-classification-mlops/actions/runs/12935606205).
 
@@ -328,7 +322,7 @@ This allowed us to easily change parameter values on the fly and everything was 
 >
 > Answer:
 
-All experiments and test logged to Weights and Biases from the beginning, this includes the model as an artifact so reproducibility was always possible. This was done using the sweep.yaml file and the command:
+All experiments and test logged to Weights and Biases from the beginning, this includes the model as an artifact so reproducibility was always possible. This was done using the `sweep.yaml` file and the command:
 ```bash
 uv run invoke sweep
 ```
@@ -355,7 +349,7 @@ Hyper parameter tuning was done using a sweep in W&B, this sweep used one split 
 ![my_train](figures/train1.png)
 ```
 
-We have used W&B in our project for hyper parameter tuning using a sweep.yaml file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
+We have used W&B in our project for hyper parameter tuning using a `sweep.yaml` file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
 
 ```markdown
 ![my_sweep](figures/sweep.png)
@@ -377,7 +371,7 @@ Other factors were also tracked during the hyper parameter tuning such as train 
 >
 > Answer:
 
-For our project, we have developed three images, one for [training](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/train.dockerfile), one for [testing](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/test.dockerfile) and one for [API](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile) calls to inference. These images are built on GCP via cloud build triggers, ensuring portability and scalability. The cloudbuild file can be seen in [/cloud/cloudbuild.yaml](https://github.com/Fiehn/wiki-classification-mlops/blob/main/cloud/cloudbuild.yaml), and the dockerfiles are as expected in the folder /dockerfiles/. The train dockers were run using Vertex AI train building from the train dockerfile.
+For our project, we have developed three images, one for [training](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/train.dockerfile), one for [testing](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/test.dockerfile) and one for [API](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile) calls to inference. These images are built on GCP via cloud build triggers, ensuring portability and scalability. The Cloud Build file can be seen in [/cloud/cloudbuild.yaml](https://github.com/Fiehn/wiki-classification-mlops/blob/main/cloud/cloudbuild.yaml), and the dockerfiles are as expected in the folder /dockerfiles/. The train dockers were run using Vertex AI train building from the train dockerfile.
 
 To build locally for testing that the containers work we use a command like the following:
 ```bash
@@ -420,9 +414,17 @@ This would of course in a larger or longer project not have been the case.
 > Answer:
 
 For the project, we have used the following GCP services:
-* Bucket: is used as our cloud storage solution. Both our raw and proceseed data is therefore found in the bucket: mlops-proj-group3-bucket/torch_geometric_data
-* Artifact: is used for centralising and managing our repository, e.g. our docker images: europe-west1-docker.pkg.dev/dtumlops-448012/mlops-proj-group3-artifact
-* Compute engine: 
+* `Bucket`: Used as our cloud storage solution. Both our raw and proceseed data is therefore found in the bucket: mlops-proj-group3-bucket/torch_geometric_data. Furthermore, the trained model with the best performance is saved here alongside its hyperparameters. The resulting predictions, user inputs and metrics associated with the API is also stored here. Called "mlops-proj-group3-bucket".
+* `Artifact Registry`: Used for centralising and managing our docker images. Called "mlops-proj-group3-artifact". 
+* `Cloud Build`: Used for building our models in the cloud. 
+* `Cloud Build Trigger`: Used for starting cloud builds every time there is a push to our main branch. 
+* `Vertex AI`: Used for training our model in the cloud, once it has been built there. 
+* `Cloud Run`: Used to detect changes in the API docker image in Github, and makes sure the latest build is used. 
+* `Service Workers`: This service was used for local testing and Github Actions.
+* `Logs Exploror`: Used for debugging. 
+* `Google Cloud Console`: Used for debugging. 
+* `Billing Account`: Used to keep track of the used and available compute resources. 
+* `IAM & Admin`: Used HEAVILY for allocating roles and permissions for service accounts. 
 
 
 ### Question 18
@@ -455,7 +457,7 @@ We did not use Google Cloud Platform's Compute Engine directly for our model tra
 ![cloud_bucket](figures/cloud_bucket.png)
 ```
 
-The first of the above screenshot displays the cloud storage of our project, while the second shows what our project bucket contains. The 'model' folder contain the best model per split as well as the best overall model (across splits). The two folders 'Prediction' and 'Userinput' are a result of our API, such that for each API call the associated user input and the final predictions were saved respectively. The last folder 'torch_geometric_data' contains our source data, both raw and processed.
+The first of the above screenshot displays the cloud storage of our project, while the second shows what our project bucket contains. The 'model' folder contain the best model per split as well as the best overall model (across splits). The three folders 'prediction/' and 'userinput/' 'metrics/' are a result of our API, such that for each API call the associated user input, the final predictions, and the metrics were saved respectively. The last folder 'torch_geometric_data' contains our source data, both raw and processed.
 
 ### Question 20
 
@@ -477,13 +479,10 @@ The above image shows our three docker images, one for api, test and train respe
 >
 > Answer:
 
-!! INSERT PICTURE !!!
-
 ```markdown
-
+![cloud_build](figures/cloud_build.png)
 ```
-
-[This figure](figures/cloud_build.png) shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
+The image shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
 
 ### Question 22
 
@@ -498,9 +497,7 @@ The above image shows our three docker images, one for api, test and train respe
 >
 > Answer:
 
-We managed to train our model in the cloud using the vertex ai train functionality. We did this by creating a self contained docker that had all the nescesary files to train and then spun that docker up in the training environment.
-In the environemnt it would get the files from our data bucket and deposit logs to Weights and Biases through the GC secret manager and deposit all the trained models into another bucket while simultaniously always keeping track of the best model to date by validation accuracy. 
-With this we also managed to run the hyper parameter W&B sweep on our model and find the best parameters.
+We managed to train our model in the cloud using the Vertex AI train functionality. We did this by creating a self contained docker that had all the nescesary files to train and then spun that docker up in the training environment. In the environemnt it would get the files from our data bucket and deposit logs to Weights and Biases through the GC secret manager and deposit all the trained models into another bucket while simultaniously always keeping track of the best model to date by validation accuracy. With this we also managed to run the hyper parameter W&B sweep on our model and find the best parameters.
 
 ## Deployment
 
@@ -517,12 +514,9 @@ With this we also managed to run the hyper parameter W&B sweep on our model and 
 >
 > Answer:
 
-We managed to write and implement an API using FastAPI for inference with our current best model.
-We did this by downloading the best model from the Cloud Bucket along with its hyperparameters, then loading the model into the architecture in model.py we run the input data sent by the request through the model to get a prediction, this prediction is returned to the user.
-This input data is then sent to a userdata bucket in the the cloud for use in datadrifting monitoring and for future training.
-The predictions are stored with the inputs, this is beneficial to be able to measure how the model performs on data, especially when the model can change while deployed.
+We managed to write and implement an API using `FastAPI` for inference with our current best model. We did this by downloading the best model from the Cloud Bucket along with its hyperparameters, then loading the model into the architecture in `model.py` we run the input data sent by the request through the model to get a prediction, this prediction is returned to the user. This input data is then sent to a userdata bucket in the the cloud for use in datadrifting monitoring and for future training. The predictions are stored with the inputs and metric, which is beneficial to be able to measure how the model performs on data, especially when the model can change while deployed.
 
-We also added continous integration to our API making it automatically deploy a new docker in cloud run whenever there is a push to the main branch of the repository, this ensures that the code is always up to date.
+We also added continous integration to our API making it automatically deploy a new docker in Cloud Run whenever there is a push to the main branch of the repository, this ensures that the code is always up to date.
 
 ### Question 24
 
@@ -538,7 +532,7 @@ We also added continous integration to our API making it automatically deploy a 
 >
 > Answer:
 
-For deployment we wrapped our model into application using [FastAPI](https://fastapi.tiangolo.com). We constructed an API which imitates inference using our trianed model. Once the API is active, the user who is interacting with the API prompts $x$ and  $edge\_index$, to which the predicted class is returned. Firstly, we tried this out locally first by activating the API, and running the script [api_user_input_test.py](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) to simulate a plausible user input. Afterwards, the API was deployed in the cloud using a Cloud Build Trigger through Cloud Run which automatically deployed the latest api docker image ([api.dockerfile](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile)) every time we pushed to the main branch. To invoke the service, a user would call a *`curl`* command like this: 
+For deployment we wrapped our model into application using [FastAPI](https://fastapi.tiangolo.com). We constructed an API which imitates inference using our trianed model. Once the API is active, the user who is interacting with the API prompts `x` and  `edge_index`, to which the predicted class is returned. Firstly, we tried this out locally first by activating the API, and running the script [api_user_input_test.py](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) to simulate a plausible user input. Afterwards, the API was deployed in the cloud using a Cloud Build Trigger through Cloud Run which automatically deployed the latest api docker image ([api.dockerfile](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile)) every time we pushed to the main branch. To invoke the service, a user would call a *`curl`* command like this: 
 *`curl -X POST "https://api-image-470583037705.europe-west1.run.app/predict" \
 -H "Content-Type: application/json" \
 -d '{
@@ -567,16 +561,12 @@ We performed both unit testing and load testing for the API. The [unit test](htt
 | Host                               | http://127.0.0.1:8000 |
 | Advanced option -> Run time        | 1m                    |
 
-The load test can be seen in [this figure](figures/api_load_test.png) and overall the yielded these results: 
+The load test can be seen in [this figure](figures/api_load_test.png) and overall yielded these results: 
 |                                        |                       |
 |----------------------------------------|-----------------------|
 | Average response time of API           | 141.6 ms              |
 | 99th percentile response time of API   | 5200 ms               |
 | Handeled requests per second           | 6.8                   |
-
- 
-
-
 
 
 ### Question 26
@@ -592,7 +582,7 @@ The load test can be seen in [this figure](figures/api_load_test.png) and overal
 >
 > Answer:
 
-Yes we successfully implemented monitoring for our deployed model using Prometheus metrics. We track key metrics like the number of prediction requests, errors and prediction latency. These metrics are exposed through a /metrics endpoint which can be integrated with prometheus for real-time monitoring.
+We successfully implemented monitoring for our deployed model using `Prometheus` metrics. We track key metrics like the number of prediction requests, errors and prediction latency. These metrics are exposed through a /metrics endpoint which can be integrated with prometheus for real-time monitoring.
 
 In our testing we processed 3 prediction requests which were all successful. the latency was low (most under 0.05 seconds). The metrics indicate that the system is functioning properly and that the model is returning predictions with minimal delay.
 
@@ -617,11 +607,7 @@ Tracking these metrics allow us to quickly identify any issues and take action t
 >
 > Answer:
 
-The first 50$ credit was spent early in the process as a compute engine was left running overnight with a GPU attached. Then after we switched to using vertex ai for the training process such mistakes could not occur any longer. 
-From the next 50$ credits we spent ??? over the remaining process, a very small part was spent on storage while the majority was spent training using a GPU and docker builds.
-We ended up building a lot of docker containers due to the trigger automatically building at changes in the main branch and a lot of small build errors leading to rebuilding.
-
-However it was a very small amount of credit used in total comparatively. This was mainly due to the short training times.
+The first $50 credit were spent early in the process as a compute engine was applied unsuccesfully, and was left running overnight with a GPU attached. Then after we switched to using Vertex AI for the training process so mistakes could not occur any longer. From the next $50 credits we spent $4.98 over the remaining process. A very small part was spent on storage while the majority was spent training using a GPU and docker builds. We ended up building a lot of docker containers due to the trigger automatically building at changes in the main branch and a lot of small build errors leading to rebuilding. However it was a very small amount of credit used in total comparatively. This was mainly due to the short training times.
 
 ### Question 28
 
@@ -654,7 +640,10 @@ We implemented a driftreport script that could generate a datadrift report as a 
 >
 > Answer:
 
-[This diagram](figures/projectOverview.png) 
+```markdown
+![over_view](figures/projectOverview.png) 
+```
+
 The project takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a uv.lock and pyproject.toml files, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows.
 
 **Version Control and Quality tests**
@@ -709,7 +698,7 @@ However using the inbuilt function worked in the end and it provided some nice f
 > Answer:
 
 
-Student s204617 and s204623 was in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
+Student s204617 and s204623 has been in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
 Student s204617 and s204617 have been in charge of continuous integration (unit tests, actions, pre-commit) such as setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
 Students s204070 and s204617 built the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on others papers and optimising the hyperparameters with a wandb sweep. 
 Student s204070 has made the tasks.py to create invoke commands for everything.
