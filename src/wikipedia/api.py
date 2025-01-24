@@ -13,6 +13,8 @@ from fastapi import BackgroundTasks, FastAPI, HTTPException
 from google.cloud import storage
 from pydantic import BaseModel
 
+from prometheus_client import Counter, Histogram, Summary, make_asgi_app, REGISTRY, CollectorRegistry
+
 # from src.wikipedia.train import download_from_gcs
 # from src.wikipedia.model import NodeLevelGNN
 
@@ -32,6 +34,12 @@ LOCAL_MODEL_PATH = "models/best_model.pt"
 LOCAL_METADATA_PATH = "models/best_model_metadata.json"
 LOCAL_DATA_FOLDER = "data"
 
+# Definer CollectorRegistry object og metrikker (Counter og Histogram):
+MY_REGISTRY = CollectorRegistry()
+request_counter = Counter("prediction_requests", "Number of prediction requests", registry=MY_REGISTRY)
+error_counter = Counter("prediction_errors", "Number of prediction errors", registry=MY_REGISTRY)
+request_latency = Histogram("prediction_latency_seconds", "Prediction latency in seconds", registry=MY_REGISTRY)
+
 # Device configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -46,6 +54,8 @@ class PredictionOutput(BaseModel):
 
 # FastAPI app
 app = FastAPI()
+
+app.mount("/metrics", make_asgi_app(registry=MY_REGISTRY))
 
 def download_file_from_gcs(bucket_name: str, source_blob_name: str, destination_file_name: str):
     client = storage.Client()
@@ -101,49 +111,56 @@ app = FastAPI(lifespan=lifespan)
 async def read_root():
     return {"message": "Welcome to the MNIST model inference API!"}
 
+
+
+
 @app.post("/predict", response_model=PredictionOutput)
 async def predict_node_classes(node_input: NodeInput, background_tasks: BackgroundTasks):
+    request_counter.inc()  # Forøg tæller for antal forespørgsler
     try:
-        # Convert input to PyTorch tensors
-        x = torch.tensor(node_input.x, dtype=torch.float32).to(device)
-        edge_index = torch.tensor(node_input.edge_index, dtype=torch.long).to(device)
+        # Mål latenstid for vores prediction
+        with request_latency.time():
+            # Convert input to PyTorch tensors
+            x = torch.tensor(node_input.x, dtype=torch.float32).to(device)
+            edge_index = torch.tensor(node_input.edge_index, dtype=torch.long).to(device)
 
-        # Create PyTorch Geometric Data object
-        data = Data(x=x, edge_index=edge_index)
+            # Create PyTorch Geometric Data object
+            data = Data(x=x, edge_index=edge_index)
 
-        # Perform prediction using the model's predict method
-        with torch.no_grad():
-            logits = model.predict(data)  # Use predict to get logits
-            predicted_classes = logits.argmax(dim=-1).cpu().tolist()
+            # Perform prediction using the model's predict method
+            with torch.no_grad():
+                logits = model.predict(data)
+                predicted_classes = logits.argmax(dim=-1).cpu().tolist()
 
-        # Save predictions to GCS
-        timestamp = datetime.datetime.now(tz=datetime.UTC).isoformat()
-        predictions_json = {
-            "input": node_input.dict(),
-            "predictions": predicted_classes,
-            "timestamp": timestamp,
-        }
-        predictions_filename = f"predictions/gnn_predictions_{timestamp}.json"
-        background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, predictions_filename, json.dumps(predictions_json))
+            # Save predictions to GCS
+            timestamp = datetime.datetime.now(tz=datetime.UTC).isoformat()
+            predictions_json = {
+                "input": node_input.dict(),
+                "predictions": predicted_classes,
+                "timestamp": timestamp,
+            }
+            predictions_filename = f"predictions/gnn_predictions_{timestamp}.json"
+            background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, predictions_filename, json.dumps(predictions_json))
 
-        # userinput_filename = f"userinput/user_input_{timestamp}.json"
-        # background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, userinput_filename, json.dumps(data))
+            # userinput_filename = f"userinput/user_input_{timestamp}.json"
+            # background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, userinput_filename, json.dumps(data))
 
-        # Convert PyTorch Geometric Data object to a JSON-compatible dictionary
-        data_dict = {
-            "x": data.x.tolist(),  # Convert tensor to list
-            "edge_index": data.edge_index.tolist()  # Convert tensor to list
-        }
+            # Convert PyTorch Geometric Data object to a JSON-compatible dictionary
+            data_dict = {
+                "x": data.x.tolist(),  # Convert tensor to list
+                "edge_index": data.edge_index.tolist()  # Convert tensor to list
+            }
 
-        # Save as JSON
-        userinput_filename = f"userinput/user_input_{timestamp}.json"
-        background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, userinput_filename, json.dumps(data_dict))
+            # Save as JSON
+            userinput_filename = f"userinput/user_input_{timestamp}.json"
+            background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, userinput_filename, json.dumps(data_dict))
 
-        return PredictionOutput(node_predictions=predicted_classes)
+            return PredictionOutput(node_predictions=predicted_classes)
 
     except Exception as e:
+        error_counter.inc()  # Forøg error counter ved fejl
         raise HTTPException(status_code=500, detail=str(e)) from e
-
+    
 
 
 
@@ -152,3 +169,4 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
 
 # Run this in the second terminal - this will send a POST request to the API:
 # Go into try.py and run the code to simulate user input and send a POST request to the API.
+
