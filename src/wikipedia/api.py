@@ -53,9 +53,9 @@ class PredictionOutput(BaseModel):
     node_predictions: List[int]  # Predicted class for each node
 
 # FastAPI app
-app = FastAPI()
+# app = FastAPI() denne er overflødig
 
-app.mount("/metrics", make_asgi_app(registry=MY_REGISTRY))
+# app.mount("/metrics", make_asgi_app(registry=MY_REGISTRY))
 
 def download_file_from_gcs(bucket_name: str, source_blob_name: str, destination_file_name: str):
     client = storage.Client()
@@ -105,6 +105,7 @@ async def lifespan(app: FastAPI):
 
 # Attach the lifespan context to the FastAPI app
 app = FastAPI(lifespan=lifespan)
+
 
 
 @app.get("/")
@@ -161,12 +162,10 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
         error_counter.inc()  # Forøg error counter ved fejl
         raise HTTPException(status_code=500, detail=str(e)) from e
     
-
-
+app.mount("/metrics", make_asgi_app(REGISTRY))
 
 # Run this in the first terminal - this will start the API: 
 # uvicorn src.wikipedia.api:app --reload
 
 # Run this in the second terminal - this will send a POST request to the API:
 # Go into try.py and run the code to simulate user input and send a POST request to the API.
-
