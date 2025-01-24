@@ -87,7 +87,7 @@ will check the repositories and the code to verify your answers.
 * [x] Create a FastAPI application that can do inference using your model (M22)
 * [x] Deploy your model in GCP using either Functions or Run as the backend (M23)
 * [x] Write API tests for your application and setup continues integration for these (M24)
-* [ ] Load test your application (M24)
+* [x] Load test your application (M24)
 * [ ] Create a more specialized ML-deployment API using either ONNX or BentoML, or both (M25)
 * [ ] Create a frontend for your API (M26)
 
@@ -538,7 +538,13 @@ We also added continous integration to our API making it automatically deploy a 
 >
 > Answer:
 
-For deployment we wrapped our model into application using [FastAPI](https://fastapi.tiangolo.com). We constructed an API which imitates inference using our trianed model. Once the API is active, the user who is interacting with the API prompts $x$ and  $edge\_index$, to which the predicted class is returned. Firstly, we tried this out locally first by activating the API, and running the script [api_user_input_test.py](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) to simulate a plausible user input. Afterwards, the API was deployed in the cloud using a Cloud Build Trigger through Cloud Run which automatically deployed the latest api docker image ([api.dockerfile](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile)) every time we pushed to the main branch. 
+For deployment we wrapped our model into application using [FastAPI](https://fastapi.tiangolo.com). We constructed an API which imitates inference using our trianed model. Once the API is active, the user who is interacting with the API prompts $x$ and  $edge\_index$, to which the predicted class is returned. Firstly, we tried this out locally first by activating the API, and running the script [api_user_input_test.py](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) to simulate a plausible user input. Afterwards, the API was deployed in the cloud using a Cloud Build Trigger through Cloud Run which automatically deployed the latest api docker image ([api.dockerfile](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile)) every time we pushed to the main branch. To invoke the service, a user would call a *`curl`* command like this: 
+*`curl -X POST "https://api-image-470583037705.europe-west1.run.app/predict" \
+-H "Content-Type: application/json" \
+-d '{
+  "x": [Vector(y, 300)],
+  "edge_index": [Vector(1,3), Vector(1,3)]
+}' `*
 
 ### Question 25
 
@@ -553,7 +559,25 @@ For deployment we wrapped our model into application using [FastAPI](https://fas
 >
 > Answer:
 
-Yes, we performed both unit testing and load testing for the API. The [unit test](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) simulates user API calls, which are designed to be similar to those expected to be done by a potential user. 
+We performed both unit testing and load testing for the API. The [unit test](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) simulates user API calls, which are designed to be similar to those expected to be done by a potential user. This test showed that the expected input from a user yielded the expected output, as seen in [this figure](figures/api_unit_test.png). The [load test](https://github.com/Fiehn/wiki-classification-mlops/blob/main/tests/locustfile.py) is performed to see how the application behaves under normal and peak conditions. The test was conducted with settings: 
+|                                    |                       |
+|------------------------------------|-----------------------|
+| Number of users (peak concurrency) | 10                    |
+| Ramp up (users started/sec)        | 1                     |
+| Host                               | http://127.0.0.1:8000 |
+| Advanced option -> Run time        | 1m                    |
+
+The load test can be seen in [this figure](figures/api_load_test.png) and overall the yielded these results: 
+|                                        |                       |
+|----------------------------------------|-----------------------|
+| Average response time of API           | 141.6 ms              |
+| 99th percentile response time of API   | 5200 ms               |
+| Handeled requests per second           | 6.8                   |
+
+ 
+
+
+
 
 ### Question 26
 
