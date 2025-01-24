@@ -18,6 +18,7 @@ classifiers = [
 readme = "README.md"
 requires-python = "==3.12.*"
 dependencies = [
+    "evidently>=0.4.36",
     "fastapi>=0.115.6",
     "gcloud>=0.18.3",
     "google-cloud>=0.34.0",
@@ -50,9 +51,6 @@ omit = ["tests/*"]
 [dependency-groups]
 dev = [
     "coverage>=7.6.10",
-    "evidently>=0.4.36",
-    "jupyter-contrib-nbextensions>=0.7.0",
-    "pip>=24.3.1",
     "pre-commit>=4.0.1",
     "pytest>=8.3.4",
     "ruff>=0.9.2",
