@@ -2,21 +2,24 @@
 # Classification of Wikipedia pages 
 
 This repository was carried out by group 3 in [the MLOps course at DTU](https://skaftenicki.github.io/dtu_mlops/). 
-Group 3 consists of: Clara Regine Hoeg Kold, Rasmus Lyhne Fiehn, Emma Christine Berggrein Andersen, Frederik Baj Henriksen, and Oliver Elmgreen.
 
+Group 3 consists of: Clara Regine Hoeg Kold, Emma Christine Berggrein Andersen, Frederik Baj Henriksen, Rasmus Lyhne Fiehn, and Oliver Rosbæk Elmgreen.
 
-## Overall goal of the project
-The objective of this project is to classifiy the Wiki-CS Dataset into its 10 native classes (Wikipedia topics) using the Pytorch Geometric framework. 
+* **Overall goal of the project**: The objective of this project is to classifiy the Wiki-CS Dataset into its 10 native classes (Wikipedia topics) using the Pytorch Geometric framework. 
+* **Framework**: The framework used is the [PyTorch Geometric library](https://pytorch-geometric.readthedocs.io), which implements neural network layers for graphs. 
+* **Data**: In this project, the [Wiki-CS Dataset](https://github.com/pmernyei/wiki-cs-dataset) will be used. This dataset consists of 11,701 Wikipedia pages represented as nodes in the graph, and 216,123 edges representing hyperlinks between the pages. The Wikipedia pages are split into 10 topic classes. 
+* **Models**: In this implementation, Graph Neural Network (GNN) models with various Graph Convolutional Network (GCN) layers is utilized. 
 
-## Framework
-The framework used is the [PyTorch Geometric library](https://pytorch-geometric.readthedocs.io), which implements neural network layers for graphs. 
+## Project flowchart
+```markdown
+![projectOverview](reports/figures/projectOverview.png)
+```
 
-## Data
-In this project, the [Wiki-CS Dataset](https://github.com/pmernyei/wiki-cs-dataset) will be used. This dataset consists of 11,701 Wikipedia pages represented as nodes in the graph, and 216,123 edges representing hyperlinks between the pages. The Wikipedia pages are split into 10 topic classes. 
+## WandB report
+Latest Weights and Biases report [here](https://wandb.ai/mlops2025/wiki_classification?nw=nwusers204623). 
 
-## Models
-In this implementation, Graph Neural Network (GNN) models with various Graph Convolutional Network (GCN) layers is utilized. 
-
+## How to install 
+`git clone https://github.com/Fiehn/wiki-classification-mlops.git`
 
 ## Project structure
 
