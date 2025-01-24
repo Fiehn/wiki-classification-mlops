@@ -285,9 +285,12 @@ That said, using DVC could have been beneficial in cases where datasets are freq
 >
 > Answer:
 
-For continuoues integration we have made 3 tests, which respectively tests the data structure, our model and the training of our model. The three tests are all included in the 'tests' folder. As the group members are using different operating systems and versions of python, we have set up the tests such that they run for both "ubuntu-latest" and "macos-latest", as well as two versions of python. This is reflected in the .github/workflows/tests.yaml file. 
-To enforce good coding practices we have utilised ruff in our pre-commit. Other pre-commits that ensure that uv.lock exists and prints a requirements.txt for anyone not wanting to use uv for dependencies.
-We set up a trigger to build the test and train docker builds in GCP whenever there is a push to main along with this we set up continuous deployment of the api docker in cloud run again at a push to main.  
+For continuoues integration we have made 3 tests, which respectively tests the data structure, our model and the training of our model. The three tests are all included in the 'tests' folder. As the group members are using different operating systems and versions of python, we have set up the tests such that they run for both "ubuntu-latest" and "macos-latest", as well as a single version of python. This is reflected in the .github/workflows/tests.yaml file. 
+To enforce good coding practices we have utilised ruff for linting in our pre-commit. Other pre-commits that ensure that uv.lock exists and prints a requirements.txt for anyone not wanting to use uv for dependencies these can be seen in the [pre-commit file](https://github.com/Fiehn/wiki-classification-mlops/blob/main/.pre-commit-config.yaml) with some custom actions added in the [uv-package-check.sh](https://github.com/Fiehn/wiki-classification-mlops/blob/main/uv-package-check.sh).
+We attempted to make it standard practice to run pre-commit before any commit but there was nothing set up to enforce this.
+We set up a trigger to build the test and train docker builds in GCP whenever there is a push to main along with this we set up continuous deployment of the api docker in cloud run again at a push to main.
+
+An example of a triggered github action workflow can be seen on the main branch or by following the [link](https://github.com/Fiehn/wiki-classification-mlops/actions/runs/12935606205).
 
 ## Running code and tracking experiments
 
@@ -396,6 +399,8 @@ Using dockers simplified our workflow by avoiding the need to manually configure
 > *run of our main code at some point that showed ...*
 >
 > Answer:
+
+The group mostly debugged using the standard python debugger in Visual Studio Code, this was
 
 --- question 16 fill here ---
 ???

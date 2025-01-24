@@ -94,7 +94,7 @@ def html() -> None:
 @app.command()
 def check() -> None:
     """Check if report satisfies the requirements."""
-    with Path("README.md").open() as file:
+    with Path("reports/README.md").open() as file:
         text = file.read()
 
     # answers in general can be found between "Answer:" and "###" or "##"
