@@ -11,9 +11,11 @@ parameters:
         max: 0.01
         distribution: log_uniform_values
     optimizer-name:
-      values: ['Adam', 'AdamW', 'NAdam', 'RMSprop']
+        values: ['Adam', 'AdamW', 'NAdam', 'RMSprop']
     num-epochs:
-        values: [500]
+        values: [50]
+    num-splits:
+        values: [1]
     weight-decay:
         min: 0.0001
         max: 0.01
