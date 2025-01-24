@@ -625,7 +625,8 @@ We implemented a driftreport script that could generate a datadrift report as a 
 >
 > Answer:
 
-[This diagram](figures/projectOverview.png) illustrates the overall setup for our project. It takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a requirements.txt file, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows. These images encapsulate all dependencies, configurations, and the codebase, providing a consistent runtime environment irrespective of the underlying infrastructure.
+[This diagram](figures/projectOverview.png) 
+The project takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a uv.lock and pyproject.toml files, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows.
 
 **Version Control and Quality tests**
 To enforce collaboration and code quality Git and GitHub were employed for version control. These tools allowed multiple team members to work in parallel on different features using branches and pull requests. GitHub also served as the central repository for the entire project. Pytest was implemented to test and validate the codebase. Automated tests ensured that new features or changes did not break existing functionality. For checking our code, we implemented some workflows using git and pytest. 
@@ -633,11 +634,11 @@ To enforce collaboration and code quality Git and GitHub were employed for versi
 **Data**
 Initially, the WikiCS dataset was downloaded locally. To improve data versioning and accessibility, we uploaded the dataset to Google Cloud Storage (GCS). From this point onward, all models and training workflows relied on the cloud-stored dataset, ensuring consistent and centralized access to the data. When storing the data in the cloud, versions of the data are automatically tracked, and since we didn't expect any changes to our data, we didn't add DVC explicitly. However as seen on the diagram, it would have happened there.
 
-Moving beyond local development, we integrated several cloud-based services to streamline training, deployment, and monitoring processes. As mentioned we used GCS to host the dataset and trained models. We moreover used Google Artifact Registry to store the Docker images created during development. These images were used for cloud-based training and running our sweeps for hyperparameter tuning. Finally we used vertex AI as the primary platform for training and deploying machine learning models. After training, the models were uploaded to Vertex AI for use in production.
+Moving beyond local development, we integrated several cloud-based services to streamline training, deployment, and monitoring processes. As mentioned we used GCS to host the dataset and trained models. We moreover used Google Artifact Registry to store the Docker images created during development. These images were used for cloud-based training and running our sweeps for hyperparameter tuning. Vertex AI was the primary platform for training and Cloud Run.
 
-Weights and Biases (Wandb) were used in parallel to the training, logging all relevant performance metrics. Question 14 displays some of the logged performances. 
+Weights and Biases (Wandb) were used in parallel to the training, logging all relevant performance metrics.
 
-Finally, FastAPI was implemented to enable users to input data into our model and receive predictions based on the best-performing version. To keep track of potential changes in the user input, Evidently AI was implemented. Evidently AI created a local report, comparing the user input to the original data stored in GC cloud storage. 
+Finally, FastAPI was implemented to enable users to input data and receive predictions based on the best model. To keep track of potential changes in the user input, Evidently AI created a local report, comparing the user input to the original data stored in GC cloud storage. 
 
 ### Question 30
 
@@ -659,6 +660,7 @@ However once we figured everything out with the right permission, service accoun
 
 Another hurdle in the project occured in the beginning where Pytorch Geometric had very poor documentation regrading the dataset we were using and the dataclasses. This led to some inconsistencies when combining the framework with Pytorch Lightning which we wanted to use.
 Solving this took time and led to using the already implemented function for storing and handling the specific dataset (WikiCS) instead of creating our own which we wanted for the additional control.
+However using the inbuilt function worked in the end and it provided some nice functionality.
 
 
 ### Question 31
@@ -687,5 +689,5 @@ Student 204605 has been in charge of implementing Evidently AI.
 Student s204617 and s204623 has been in charge of GCP. 
 Student s204617, s204623 and s194645 has been in charge of API.
 
-We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
+We have used ChatGPT (and other gen ai's) to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
 All members have contributed to the project and writing the report. Overall it has been a collaborative process making the project.
