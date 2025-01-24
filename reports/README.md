@@ -218,7 +218,7 @@ While we used Ruff for our linting it was not integrated to a wide enough extent
 >
 > Answer:
 
-We implemented 26 tests for train, model, data, and API scripts, focusing on the NodeLevelGNN model's initialization, optimizer configurations, forward pass, training, validation, and prediction. Tests covered edge cases like invalid configurations, empty graphs, input mismatches, and metric tracking. We used pytest.raises, pytest.fixture, and mocked components (e.g., graph data, GCP interactions) to validate the training pipeline. Dataset loading, splitting, and loader preparation were verified, and API tests ensured endpoint functionality. CLI commands were tested using CliRunner from Typer, with CSVLogger and mocked WandB for logging. Scripts included try/except and error-specific returns for robustness.
+We implemented 26 tests for train, model, data, and API, gcp_utils scripts, focusing on the NodeLevelGNN model's initialization, optimizer configurations, forward pass, training, validation, and prediction. Tests covered edge cases like invalid configurations, empty graphs, input mismatches, and metric tracking. We used pytest.raises, pytest.fixture, and mocked components (e.g., graph data, GCP interactions) to validate the training pipeline. Dataset loading, splitting, and loader preparation were verified, and API tests ensured endpoint functionality. CLI commands were tested using CliRunner from Typer, with CSVLogger and mocked WandB for logging. Scripts included try/except and error-specific returns for robustness.
 
 ### Question 8
 
