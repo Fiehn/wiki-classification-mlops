@@ -651,7 +651,14 @@ Finally, FastAPI was implemented to enable users to input data into our model an
 >
 > Answer:
 
-During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud. However once we figured everything out with the right permission, service account and credentials, it worked very well and we therefore managed to do all of our training and hyperparameter tuning in the cloud.
+During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. 
+The issues were mostly related to making the docker environment have all the nescesary permissions, secrets and files when running in the vertex ai trainer.
+We could make most things work on our local docker with the same service accounts but once it reached the cloud it struggled doing the same things, mostly due to permissions.
+
+However once we figured everything out with the right permission, service account and credentials, it worked very well and we therefore managed to do all of our training and hyperparameter tuning in the cloud.
+
+Another hurdle in the project occured in the beginning where Pytorch Geometric had very poor documentation regrading the dataset we were using and the dataclasses. This led to some inconsistencies when combining the framework with Pytorch Lightning which we wanted to use.
+Solving this took time and led to using the already implemented function for storing and handling the specific dataset (WikiCS) instead of creating our own which we wanted for the additional control.
 
 
 ### Question 31
