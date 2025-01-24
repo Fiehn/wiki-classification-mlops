@@ -171,7 +171,7 @@ def train_model(
     dropout: float = typer.Option(0.3236, help="Dropout rate"),
     learning_rate: float = typer.Option(0.001666, help="Learning rate"),
     weight_decay: float = typer.Option(1e-4, help="Weight decay"),
-    num_epochs: int = typer.Option(300, help="Number of epochs"),
+    num_epochs: int = typer.Option(500, help="Number of epochs"),
     num_splits: int = typer.Option(20, help="Number of splits to train on"),
     batch_size: int = typer.Option(11701, help="Batch size"),
     optimizer_name: str = typer.Option("Adam", help="Optimizer name"),
