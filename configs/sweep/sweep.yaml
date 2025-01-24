@@ -7,27 +7,29 @@ metric:
     name: val_acc 
 parameters:
     learning-rate:
-        min: 0.001
-        max: 0.05
+        min: 0.00001
+        max: 0.01
         distribution: log_uniform_values
     optimizer-name:
       values: ['Adam', 'AdamW', 'NAdam', 'RMSprop']
     num-epochs:
-        values: [300]
+        values: [500]
     weight-decay:
-        values: [0.0001]
+        min: 0.0001
+        max: 0.01
+        distribution: log_uniform_values
     dropout:
         min: 0.0
         max: 0.4
         distribution: uniform
     hidden-layers:
-        min: 2
-        max: 12
+        min: 1
+        max: 8
         distribution: int_uniform
     hidden-channels:
         min: 8
-        max: 128
+        max: 256
         distribution: int_uniform
     batch-size:
         values: [11701]
-run_cap: 30
+run_cap: 40
