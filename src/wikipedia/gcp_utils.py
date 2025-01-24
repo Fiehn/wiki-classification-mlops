@@ -22,7 +22,7 @@ def get_secret(secret_name):
     secret = response.payload.data.decode('UTF-8')
     return secret
 
-def validate_wandb_api(wand_key=os.environ["WANDB_API_KEY"]):
+def validate_wandb_api(wand_key=""):
     if wand_key == "":
         wand_key = get_secret("WANDB_API_KEY")
         os.environ["WANDB_API_KEY"] = wand_key
