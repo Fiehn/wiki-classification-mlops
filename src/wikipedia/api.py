@@ -4,22 +4,16 @@ import datetime
 import json
 from typing import List
 from contextlib import asynccontextmanager
-from torch_geometric.datasets import WikiCS
-from torch_geometric.loader import DataLoader
-import pytorch_lightning as pl
-
 import torch
 from torch_geometric.data import Data
 from fastapi import BackgroundTasks, FastAPI, HTTPException
-from google.cloud import storage
 from pydantic import BaseModel
-
-from prometheus_client import Counter, Histogram, Summary, make_asgi_app, REGISTRY, CollectorRegistry, generate_latest
-
+from prometheus_client import Counter, Histogram, REGISTRY, CollectorRegistry, generate_latest
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__))))
 from model import NodeLevelGNN
+from gcp_utils import download_file_from_gcs, upload_file_to_gcs
 
 # Global variables
 model = None  # Initialize as None
@@ -51,20 +45,6 @@ class PredictionOutput(BaseModel):
     node_predictions: List[int]  # Predicted class for each node
     # metrics: dict  # Metrics for the prediction request
 
-def download_file_from_gcs(bucket_name: str, source_blob_name: str, destination_file_name: str):
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(source_blob_name)
-    blob.download_to_filename(destination_file_name)
-    print(f"Downloaded {source_blob_name} to {destination_file_name}")
-
-def upload_file_to_gcs(bucket_name: str, destination_blob_name: str, content: str):
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(destination_blob_name)
-    blob.upload_from_string(content)
-    print(f"Uploaded predictions to {destination_blob_name}")
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global model
@@ -76,7 +56,7 @@ async def lifespan(app: FastAPI):
         download_file_from_gcs(BUCKET_NAME, METADATA_FILE_NAME, LOCAL_METADATA_PATH)
 
     # Load model checkpoint
-    checkpoint = torch.load(LOCAL_MODEL_PATH, map_location=device)
+    checkpoint = torch.load(LOCAL_MODEL_PATH, map_location=device, weights_only=False)
 
     # Load hyperparameters
     hyperparameters = checkpoint['hyperparameters']
@@ -172,4 +152,3 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
 
 # Run this in the first terminal - this will start the API: 
 # uvicorn src.wikipedia.api:app --reload
-

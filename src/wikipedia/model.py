@@ -1,3 +1,4 @@
+import torch
 from torch import nn
 from torch_geometric.nn import GCNConv
 import pytorch_lightning as pl
@@ -143,8 +144,30 @@ class NodeLevelGNN(pl.LightningModule):
         x, edge_index = batch.x, batch.edge_index
         return self.model(x, edge_index)
     
-if __name__ == "__main__":
-    #model = GCN(hidden_channels=16, num_features=300, num_classes=10, dropout=0.5)
-    #print(model)
-    #print("Model loaded successfully.")
-    pass
+def load_model(checkpoint_path, c_in, c_out):
+    """Load model and hyperparameters from checkpoint."""
+    # Load checkpoint
+    try: 
+        checkpoint = torch.load(checkpoint_path, weights_only=True)
+        print(f"Checkpoint loaded successfully. {checkpoint.keys()}")
+        # Get hyperparameters from checkpoint
+    except Exception as e:
+        print(f"Failed to load checkpoint: {e}")
+        return
+    
+    hyperparameters = checkpoint['hyperparameters']
+    #print(f"Hyperparameters: {hyperparameters}")
+    
+    # Initialize model with saved hyperparameters
+    model = NodeLevelGNN(
+        c_in=c_in,
+        c_hidden=hyperparameters['c_hidden'],
+        c_out=c_out,
+        num_layers=hyperparameters['num_layers'],
+        dp_rate=hyperparameters['dp_rate'],
+    )
+    
+    # Load the state dict
+    model.load_state_dict(checkpoint['model_state_dict'])
+    
+    return model

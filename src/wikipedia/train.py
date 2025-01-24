@@ -1,5 +1,4 @@
 import os
-import shutil
 import logging
 import wandb
 import typer
@@ -7,54 +6,26 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from torch_geometric.loader import DataLoader
 
-from google.cloud import storage
-from google.cloud import secretmanager
-
-
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 # Local imports
-from data import load_split_data, explore_splits, download_from_gcs, upload_model, download_file, prepare_data_loaders, prepare_test_loader
-from model import NodeLevelGNN
+from wikipedia.data import load_split_data, prepare_data_loaders, prepare_test_loader
+from wikipedia.model import NodeLevelGNN
+from wikipedia.gcp_utils import validate_wandb_api, download_from_gcs, upload_file_to_gcs
 
 # Adjust verbosity
 logging.getLogger("pytorch_lightning").setLevel(logging.FATAL) # WARNING, ERROR, CRITICAL, DEBUG, INFO, FATAL
 logging.getLogger("lightning").setLevel(logging.FATAL)
-# Redirect stdout and stderr to /dev/null to suppress further logs
-# import os
-# import sys
-# sys.stdout = open(os.devnull, 'w')  # Suppress standard output
-# sys.stderr = open(os.devnull, 'w')  # Suppress error output
 
-
-def get_secret(secret_name):
-    # Create the Secret Manager client
-    client = secretmanager.SecretManagerServiceClient()
-    
-    # Access the secret version
-    project_id = "dtumlops-448012"	
-    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
-    response = client.access_secret_version(name=name)
-    
-    # Decode the secret payload
-    secret = response.payload.data.decode('UTF-8')
-    return secret
-
-if "WANDB_API_KEY" not in os.environ or wandb.api.api_key == "":
-        
-    # Get the WandB API key from Secret Manager
-    wandb_api_key = get_secret("WANDB_API_KEY")
-
-    # Log in to WandB using the API key
-    os.environ["WANDB_API_KEY"] = wandb_api_key
-    
 app = typer.Typer()
 
 class DeviceInfoCallback(pl.Callback):
-    def on_train_start(self, trainer, pl_module):
-        # Get the device from the model (e.g., cuda:0, cpu, etc.)
-        device = pl_module.device
-        print(f"Training on device: {device}")
+        def on_train_start(self, trainer, pl_module):
+            # Get the device from the model (e.g., cuda:0, cpu, etc.)
+            device = pl_module.device
+            print(f"Training on device: {device}")
 
 def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name):
     """Initialize the model and optimizer."""
@@ -86,8 +57,10 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     """Train and evaluate the model on a specific split.
     Save one model checkpoint per split."""
 
+    # Generate a unique run name for each split
+    run_name = f"{group_name}_split_{split_idx}_{wandb.util.generate_id()}"
     # Initialize WandbLogger
-    wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025", group=group_name, name=f"{group_name}_split_{split_idx}")
+    wandb_logger = WandbLogger(project="wiki_classification", entity="mlops2025", group=group_name, name=run_name)
     # Log parameters
     wandb_logger.experiment.config.update({
         "hidden_channels": hidden_channels,
@@ -111,6 +84,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         dirpath=f"checkpoints/split_{split_idx}",  # separate dir per split
         filename="best_model-{epoch:02d}-{val_acc:.4f}"
     )
+    
     # Callbacks
     callbacks = [DeviceInfoCallback()]
     if model_checkpoint_callback:
@@ -153,9 +127,9 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
             'num_epochs': num_epochs,
             'batch_size': batch_size,
         }
-    }, f"models/split_{split_idx}_model.pt")
+    }, f"models/{run_name}_model.pt")
 
-    upload_model(bucket_name, f"models/split_{split_idx}_model.pt")
+    upload_file_to_gcs(bucket_name, f"models/{run_name}_model.pt")
     wandb.finish()
 
     return val_acc, test_acc
@@ -171,18 +145,19 @@ def train_model(
     dropout: float = typer.Option(0.3236, help="Dropout rate"),
     learning_rate: float = typer.Option(0.001666, help="Learning rate"),
     weight_decay: float = typer.Option(1e-4, help="Weight decay"),
-    num_epochs: int = typer.Option(500, help="Number of epochs"),
-    num_splits: int = typer.Option(20, help="Number of splits to train on"),
+    num_epochs: int = typer.Option(40, help="Number of epochs"),
+    num_splits: int = typer.Option(5, help="Number of splits to train on"),
     batch_size: int = typer.Option(11701, help="Batch size"),
     optimizer_name: str = typer.Option("Adam", help="Optimizer name"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
     enable_early_stopping: bool = typer.Option(True, help="Whether to use early stopping"),
-    ) -> None:
+) -> None:
     """
     Main training function for both standalone runs and W&B sweeps.
     """
     pl.seed_everything(42)
-    wandb.login()
+    validate_wandb_api(os.environ.get("WANDB_API_KEY"))
+
     group_name = wandb.util.generate_id()
 
     # Download data from GCS
@@ -190,10 +165,9 @@ def train_model(
     data_module = load_split_data(data_path)
     data = data_module[0]
 
-    # Param to tell how many splits to train on - check for invalid input
+    # Check for invalid input
     if num_splits >= data.train_mask.shape[1]:
-        # Run over all 20 splits and then average the results
-        num_splits = data.train_mask.shape[1] 
+        num_splits = data.train_mask.shape[1]
     print(f"Total splits: {num_splits}")
 
     val_accuracies = []
@@ -203,8 +177,10 @@ def train_model(
         val_acc, test_acc = train_on_split(
             data, split, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name, num_epochs,
             batch_size, model_checkpoint_callback, bucket_name, group_name, enable_early_stopping)
-        val_accuracies.append(val_acc)
-        test_accuracies.append(test_acc)
+        if val_acc is not None:
+            val_accuracies.append(val_acc)
+        if test_acc is not None:
+            test_accuracies.append(test_acc)
 
     # Log average accuracy
     avg_val_acc = sum(val_accuracies) / len(val_accuracies)

@@ -6,9 +6,6 @@ from torch_geometric.data import Data
 from src.wikipedia.data import (
     load_split_data,
     explore_splits,
-    download_from_gcs,
-    upload_model,
-    download_file,
     prepare_data_loaders,
     prepare_test_loader
 )
