@@ -568,7 +568,13 @@ For deployment we wrapped our model into application using [FastAPI](https://fas
 >
 > Answer:
 
---- question 26 fill here ---
+Yes we successfully implemented monitoring for our deployed model using Prometheus metrics. We track key metrics like the number of prediction requests, errors and prediction latency. These metrics are exposed through a /metrics endpoint which can be integrated with prometheus for real-time monitoring.
+
+In our testing we processed 3 prediction requests which were all successful. the latency was low (most under 0.05 seconds). The metrics indicate that the system is functioning properly and that the model is returning predictions with minimal delay.
+
+Our code handles metrics collection through Prometheus' Counter and Histogram classes, tracking both requests and response times. Additionally we store model predictions, user input and metrics as JSON files in Google Cloud Storage for later review. Having set up system monitoring we should be able to detect anomalies in request rates, errors or response times, which could indicate potential issues like system failures or spikes in traffic.
+
+Tracking these metrics allow us to quickly identify any issues and take action to keep the system running smoothly. This helps in improving the model's performance and ensuring that the applocation stays reliable and responsive over time.
 
 ## Overall discussion of project
 
@@ -687,6 +693,7 @@ Student s204070 has set up W&B with help from s204605. Together they have been i
 Student 204605 has been in charge of implementing Evidently AI.
 Student s204617 and s204623 has been in charge of GCP. 
 Student s204617, s204623 and s194645 has been in charge of API.
+Student 194645 and s204623 have implemented metrics (System monitoring - M28) for tracking performance and reliability of the API using Prometheus-client.
 
 
 We have used ChatGPT (and other gen ai's) to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
