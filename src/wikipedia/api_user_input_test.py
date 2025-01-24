@@ -1,40 +1,12 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import random
 import numpy as np
 import requests
 import json
 
-
 # API endpoint and headers
 # url = "http://127.0.0.1:8000/predict"
 url = "https://api-image-470583037705.europe-west1.run.app/predict"
 headers = {"Content-Type": "application/json"}
-
 
 # Generate random input data
 x = np.random.rand(20, 300).tolist()  # Convert NumPy array to a Python list
@@ -58,7 +30,6 @@ try:
     print("Response JSON:", response.json())
 except Exception as e:
     print("Error parsing JSON response:", e)
-
 
 
 # curl -X POST "http://127.0.0.1:8000/predict" \
