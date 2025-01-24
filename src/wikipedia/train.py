@@ -82,7 +82,7 @@ def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learn
     return model
 
 def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name, 
-                   num_epochs, batch_size, model_checkpoint_callback, bucket_name, group_name):
+                   num_epochs, batch_size, model_checkpoint_callback, bucket_name, group_name, enable_early_stopping):
     """Train and evaluate the model on a specific split.
     Save one model checkpoint per split."""
 
@@ -105,8 +105,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     model = initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name)
 
     checkpoint_callback = ModelCheckpoint(
-        monitor="val_acc",
-        mode="max",
+        monitor="val_loss",
+        mode="min",
         save_top_k=1,
         dirpath=f"checkpoints/split_{split_idx}",  # separate dir per split
         filename="best_model-{epoch:02d}-{val_acc:.4f}"
@@ -115,6 +115,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     callbacks = [DeviceInfoCallback()]
     if model_checkpoint_callback:
         callbacks.append(checkpoint_callback)
+    if enable_early_stopping:
+        callbacks.append(EarlyStopping(monitor="val_loss", patience=10))
 
     # Trainer
     trainer = pl.Trainer(
@@ -174,6 +176,7 @@ def train_model(
     batch_size: int = typer.Option(11701, help="Batch size"),
     optimizer_name: str = typer.Option("Adam", help="Optimizer name"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
+    enable_early_stopping: bool = typer.Option(True, help="Whether to use early stopping"),
     ) -> None:
     """
     Main training function for both standalone runs and W&B sweeps.
@@ -199,7 +202,7 @@ def train_model(
         print(f"Training on split {split}")
         val_acc, test_acc = train_on_split(
             data, split, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name, num_epochs,
-            batch_size, model_checkpoint_callback, bucket_name, group_name)
+            batch_size, model_checkpoint_callback, bucket_name, group_name, enable_early_stopping)
         val_accuracies.append(val_acc)
         test_accuracies.append(test_acc)
 
