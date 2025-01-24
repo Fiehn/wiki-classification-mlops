@@ -1,5 +1,4 @@
 import os
-import shutil
 import logging
 import wandb
 import typer
@@ -7,54 +6,26 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from torch_geometric.loader import DataLoader
 
-from google.cloud import storage
-from google.cloud import secretmanager
-
-
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.parent))
 # Local imports
-from data import load_split_data, explore_splits, download_from_gcs, upload_model, download_file, prepare_data_loaders, prepare_test_loader
-from model import NodeLevelGNN
+from wikipedia.data import load_split_data, prepare_data_loaders, prepare_test_loader
+from wikipedia.model import NodeLevelGNN
+from wikipedia.gcp_utils import validate_wandb_api, download_from_gcs, upload_file_to_gcs
 
 # Adjust verbosity
 logging.getLogger("pytorch_lightning").setLevel(logging.FATAL) # WARNING, ERROR, CRITICAL, DEBUG, INFO, FATAL
 logging.getLogger("lightning").setLevel(logging.FATAL)
-# Redirect stdout and stderr to /dev/null to suppress further logs
-# import os
-# import sys
-# sys.stdout = open(os.devnull, 'w')  # Suppress standard output
-# sys.stderr = open(os.devnull, 'w')  # Suppress error output
 
-
-def get_secret(secret_name):
-    # Create the Secret Manager client
-    client = secretmanager.SecretManagerServiceClient()
-    
-    # Access the secret version
-    project_id = "dtumlops-448012"	
-    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
-    response = client.access_secret_version(name=name)
-    
-    # Decode the secret payload
-    secret = response.payload.data.decode('UTF-8')
-    return secret
-
-if "WANDB_API_KEY" not in os.environ or wandb.api.api_key == "":
-        
-    # Get the WandB API key from Secret Manager
-    wandb_api_key = get_secret("WANDB_API_KEY")
-
-    # Log in to WandB using the API key
-    os.environ["WANDB_API_KEY"] = wandb_api_key
-    
 app = typer.Typer()
 
 class DeviceInfoCallback(pl.Callback):
-    def on_train_start(self, trainer, pl_module):
-        # Get the device from the model (e.g., cuda:0, cpu, etc.)
-        device = pl_module.device
-        print(f"Training on device: {device}")
+        def on_train_start(self, trainer, pl_module):
+            # Get the device from the model (e.g., cuda:0, cpu, etc.)
+            device = pl_module.device
+            print(f"Training on device: {device}")
 
 def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name):
     """Initialize the model and optimizer."""
@@ -111,6 +82,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         dirpath=f"checkpoints/split_{split_idx}",  # separate dir per split
         filename="best_model-{epoch:02d}-{val_acc:.4f}"
     )
+    
     # Callbacks
     callbacks = [DeviceInfoCallback()]
     if model_checkpoint_callback:
@@ -155,7 +127,7 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
         }
     }, f"models/split_{split_idx}_model.pt")
 
-    upload_model(bucket_name, f"models/split_{split_idx}_model.pt")
+    upload_file_to_gcs(bucket_name, f"models/split_{split_idx}_model.pt")
     wandb.finish()
 
     return val_acc, test_acc
@@ -182,7 +154,8 @@ def train_model(
     Main training function for both standalone runs and W&B sweeps.
     """
     pl.seed_everything(42)
-    wandb.login()
+    validate_wandb_api(os.environ.get("WANDB_API_KEY"))
+
     group_name = wandb.util.generate_id()
 
     # Download data from GCS

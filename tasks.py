@@ -55,7 +55,7 @@ def dev_requirements(ctx: Context) -> None:
 @task
 def preprocess_data(ctx: Context) -> None:
     """Preprocess data."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/data.py data/raw data/processed", echo=True, pty=not WINDOWS)
+    ctx.run(f"uv run src/{PROJECT_NAME}/data.py", echo=True, pty=not WINDOWS)
 
 @task
 def train(ctx: Context) -> None:
@@ -66,12 +66,6 @@ def train(ctx: Context) -> None:
 def trainfast(ctx: Context) -> None:
     """Train model with fast flag."""
     ctx.run(f"uv run src/{PROJECT_NAME}/train.py --num-splits=1 --num-epochs=10", echo=True, pty=not WINDOWS)
-
-#python src/wikipedia/train.py mlops-proj-group3-bucket torch_geometric_data
-@task
-def traincloud(ctx: Context) -> None:
-    """Train model on Google Cloud AI Platform."""
-    ctx.run(f"python src/{PROJECT_NAME}/train.py mlops-proj-group3-bucket torch_geometric_data", echo=True, pty=not WINDOWS)
 
 # wandb sweep --project <propject-name> <path-to-config file>
 @task
@@ -96,20 +90,25 @@ def sweep(ctx: Context) -> None:
     ctx.run(f"wandb agent mlops2025/wiki_classification/{sweep_id}", echo=True, pty=not WINDOWS)
 
 # docker run --gpus all --rm -it -v "$(pwd)/cloud:/app/cloud:ro" -v "$(pwd)/tasks.py:/app/tasks.py:ro" --entrypoint "uv" train-image-gpu run invoke sweep
-
-
 # "\\wsl.localhost\Ubuntu\home\fenriswulven\project\wiki-classification-mlops\checkpoints\split_0\best_model-epoch=195-val_acc=0.8219-v4.ckpt"
 ## test with best model
+
+@task
+def visualize(ctx: Context) -> None:
+    """Train model."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/visualize.py", echo=True, pty=not WINDOWS)
+
+
 @task 
 def test2(ctx: Context) -> None:
     """Test model on test set."""
-    ctx.run(f"uv run src/{PROJECT_NAME}/test.py models/best_model-epoch=195-val_acc=0.8219-v4.ckpt", echo=True, pty=not WINDOWS)
+    ctx.run(f"uv run src/{PROJECT_NAME}/test.py", echo=True, pty=not WINDOWS)  
 
 @task
 def test(ctx: Context) -> None:
     """Run tests."""
-    ctx.run("coverage run -m pytest tests/", echo=True, pty=not WINDOWS)
-    ctx.run("coverage report -m", echo=True, pty=not WINDOWS)
+    ctx.run("uv run pytest tests --cov=src --cov-report=xml", echo=True, pty=not WINDOWS)
+    ctx.run("uv run coverage report", echo=True, pty=not WINDOWS)
 
 @task
 def dockerbuild(ctx: Context, progress: str = "plain") -> None:

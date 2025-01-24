@@ -3,29 +3,9 @@ import os
 import torch
 import typer
 from data import load_split_data  # Adjust based on your implementation
-from google.cloud import storage
-from data import load_split_data  # Adjust based on your implementation
-
+from gcp_utils import download_from_gcs
 
 app = typer.Typer()
-
-def download_from_gcs(bucket_name, source_folder, destination_folder):
-    """Download files from a GCS bucket."""
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-
-    # Ensure destination folder exists
-    os.makedirs(destination_folder, exist_ok=True)
-
-    blobs = bucket.list_blobs(prefix=source_folder)
-    for blob in blobs:
-        if not blob.name.endswith("/"):  # Skip directories
-            file_path = os.path.join(destination_folder, os.path.relpath(blob.name, source_folder))
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            blob.download_to_filename(file_path)
-            print(f"Downloaded {blob.name} to {file_path}")
-    return destination_folder
-
 
 def dataset_statistics(
         bucket_name: str = typer.Argument(..., help="GCS bucket name for data"),
