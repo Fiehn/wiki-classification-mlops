@@ -521,7 +521,7 @@ With this we also managed to run the hyper parameter W&B sweep on our model and 
 We managed to write and implement an API using FastAPI for inference with our current best model.
 We did this by downloading the best model from the Cloud Bucket along with its hyperparameters, then loading the model into the architecture in model.py we run the input data sent by the request through the model to get a prediction, this prediction is returned to the user.
 This input data is then sent to a userdata bucket in the the cloud for use in datadrifting monitoring and for future training.
-The predictions are not stored anywhere, however this would be beneficial to be able to measure how the model performs on data, especially when the model can change while deployed.
+The predictions are stored with the inputs, this is beneficial to be able to measure how the model performs on data, especially when the model can change while deployed.
 
 We also added continous integration to our API making it automatically deploy a new docker in cloud run whenever there is a push to the main branch of the repository, this ensures that the code is always up to date.
 
