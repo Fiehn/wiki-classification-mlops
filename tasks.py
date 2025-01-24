@@ -10,22 +10,6 @@ WINDOWS = os.name == "nt" # this means that the OS is Windows
 PROJECT_NAME = "wikipedia"
 PYTHON_VERSION = "3.12"
 
-# Set if using local docker
-# if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ:
-#     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-e5cfd43b6fd8.json"
-
-def login_wandb(secret_name):
-    client = secretmanager.SecretManagerServiceClient()
-    
-    project_id = "dtumlops-448012"	
-    name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"
-    response = client.access_secret_version(name=name)
-    
-    secret = response.payload.data.decode('UTF-8')
-    os.environ["WANDB_API_KEY"] = secret
-
-    wandb.login()
-
 # prefix string to try uv first, then python
 #prefix = "uv" if not WINDOWS else "python"
 
@@ -78,9 +62,14 @@ def train(ctx: Context) -> None:
     """Train model."""
     ctx.run(f"uv run src/{PROJECT_NAME}/train.py", echo=True, pty=not WINDOWS)
 
+@task
+def trainfast(ctx: Context) -> None:
+    """Train model with fast flag."""
+    ctx.run(f"uv run src/{PROJECT_NAME}/train.py --num-splits=1 --num-epochs=10", echo=True, pty=not WINDOWS)
+
 #python src/wikipedia/train.py mlops-proj-group3-bucket torch_geometric_data
 @task
-def train_cloud(ctx: Context) -> None:
+def traincloud(ctx: Context) -> None:
     """Train model on Google Cloud AI Platform."""
     ctx.run(f"python src/{PROJECT_NAME}/train.py mlops-proj-group3-bucket torch_geometric_data", echo=True, pty=not WINDOWS)
 
@@ -123,7 +112,7 @@ def test(ctx: Context) -> None:
     ctx.run("coverage report -m", echo=True, pty=not WINDOWS)
 
 @task
-def docker_build(ctx: Context, progress: str = "plain") -> None:
+def dockerbuild(ctx: Context, progress: str = "plain") -> None:
     """Build docker images."""
     ctx.run(
         f"docker build -t train:latest . -f dockerfiles/train.dockerfile --progress={progress}",
@@ -138,13 +127,13 @@ def docker_build(ctx: Context, progress: str = "plain") -> None:
 
 # Documentation commands
 @task(dev_requirements)
-def build_docs(ctx: Context) -> None:
+def builddocs(ctx: Context) -> None:
     """Build documentation."""
     ctx.run("mkdocs build --config-file docs/mkdocs.yaml --site-dir build", echo=True, pty=not WINDOWS)
 
 
 @task(dev_requirements)
-def serve_docs(ctx: Context) -> None:
+def servedocs(ctx: Context) -> None:
     """Serve documentation."""
     ctx.run("mkdocs serve --config-file docs/mkdocs.yaml", echo=True, pty=not WINDOWS)
 

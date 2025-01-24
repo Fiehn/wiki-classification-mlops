@@ -5,6 +5,7 @@ manual_test/
 
 # data 
 data/*
+src/wikipedia/data/*
 
 # logging
 wandb/*
@@ -199,3 +200,8 @@ checkpoints/
 dtumlops-448012-37e77e52cd8f.json
 dtumlops-448012-f2134e26466c.json
 dtumlops-448012-e5cfd43b6fd8.json
+dtumlops-448012-3165f3b92003.json
+dtumlops-448012-cd176bb4d550.json
+
+
+my_datadrit_report.json

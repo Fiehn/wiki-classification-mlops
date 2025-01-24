@@ -7,7 +7,6 @@ import torch
 import pytorch_lightning as pl
 from pytorch_lightning.loggers import WandbLogger
 from pytorch_lightning.callbacks import ModelCheckpoint, EarlyStopping
-from torch_geometric.datasets import WikiCS
 from torch_geometric.loader import DataLoader
 
 from google.cloud import storage
@@ -15,7 +14,7 @@ from google.cloud import secretmanager
 
 
 # Local imports
-#from data import load_data, load_split_data, explore_splits
+from data import load_split_data, explore_splits, download_from_gcs, upload_model, download_file, prepare_data_loaders, prepare_test_loader
 from model import NodeLevelGNN
 
 # Adjust verbosity
@@ -51,35 +50,6 @@ if "WANDB_API_KEY" in os.environ or wandb.api.api_key == "":
     
 app = typer.Typer()
 
-
-def download_from_gcs(bucket_name, source_folder, destination_folder):
-    """Download files from a GCS bucket."""
-
-    if "GOOGLE_APPLICATION_CREDENTIALS" not in os.environ and os.path.exists("cloud/dtumlops-448012-37e77e52cd8f.json"):
-        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "cloud/dtumlops-448012-37e77e52cd8f.json"
-
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-
-    # Ensure destination folder exists
-    os.makedirs(destination_folder, exist_ok=True)
-
-    blobs = bucket.list_blobs(prefix=source_folder)
-    for blob in blobs:
-        if not blob.name.endswith("/"):  # Skip directories
-            file_path = os.path.join(destination_folder, os.path.relpath(blob.name, source_folder))
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            blob.download_to_filename(file_path)
-            print(f"Downloaded {blob.name} to {file_path}")
-    return destination_folder
-
-def upload_model(bucket_name, model_name):
-    client = storage.Client()
-    bucket = client.bucket(bucket_name)
-    blob = bucket.blob(model_name)
-    blob.upload_from_filename(model_name)
-    print(f"Uploaded model {model_name} to bucket {bucket_name}.")
-
 class DeviceInfoCallback(pl.Callback):
     def on_train_start(self, trainer, pl_module):
         # Get the device from the model (e.g., cuda:0, cpu, etc.)
@@ -88,6 +58,13 @@ class DeviceInfoCallback(pl.Callback):
 
 def initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name):
     """Initialize the model and optimizer."""
+    # Input validation
+    if hidden_channels <= 0:
+        raise ValueError(f"hidden_channels must be positive, got {hidden_channels}")
+    if hidden_layers <= 0:
+        raise ValueError(f"hidden_layers must be positive, got {hidden_layers}")
+    if not isinstance(optimizer_name, str) or optimizer_name not in ["Adam", "AdamW", "NAdam", "RMSprop", "SGD"]:
+        raise ValueError(f"Unknown optimizer: {optimizer_name}")
 
     model = NodeLevelGNN(
         c_in=c_in,
@@ -108,20 +85,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
                    num_epochs, batch_size, wandb_logger, model_checkpoint_callback, bucket_name):
     """Train and evaluate the model on a specific split.
     Save one model checkpoint per split."""
-    train_data = data.clone()
-    val_data = data.clone()
-    train_data.train_mask = data.train_mask[:, split_idx]  # 1D mask for training
-    train_data.val_mask = None  # Not needed during training
-    val_data.val_mask = data.val_mask[:, split_idx]  # 1D mask for validation
-    val_data.train_mask = None  # Not needed during validation
 
-    train_loader = DataLoader([train_data], batch_size=1, num_workers=7, shuffle=False)
-    val_loader = DataLoader([val_data], batch_size=1, num_workers=7)
-
-
-    # Initialize model
-    c_in = data.num_node_features
-    c_out = data.y.max().item() + 1
+    train_loader, val_loader, c_in, c_out = prepare_data_loaders(data, split_idx)
     model = initialize_model(c_in, c_out, hidden_channels, hidden_layers, dropout, learning_rate, weight_decay, optimizer_name)
 
     checkpoint_callback = ModelCheckpoint(
@@ -156,9 +121,8 @@ def train_on_split(data, split_idx, hidden_channels, hidden_layers, dropout, lea
     val_acc = val_results[0].get('val_acc', None) # more robust
     
     # Test
-    test_data = data.clone()  # test_data.test_mask remains as is
-    # Create a DataLoader for the test data (wrap in a list)
-    test_loader = DataLoader([test_data], batch_size=1, num_workers=7)
+    # Then you can use it in the code by adding:
+    test_loader = prepare_test_loader(data)
     test_results = trainer.test(ckpt_path=best_ckpt_path, dataloaders=test_loader, verbose=False)
     test_acc = test_results[0].get('test_acc', None)
 
@@ -200,14 +164,14 @@ def train_model(
     bucket_name: str = typer.Argument("mlops-proj-group3-bucket", help="GCS bucket name for data"),
     source_folder: str = typer.Argument("torch_geometric_data", help="Source folder in GCS bucket"),
     local_data_folder: str = typer.Argument("data", help="Local folder to store downloaded data"),
-    hidden_channels: int = typer.Option(32, help="Number of hidden channels"),
+    hidden_channels: int = typer.Option(115, help="Number of hidden channels"),
     hidden_layers: int = typer.Option(2, help="Number of hidden layers"),
-    dropout: float = typer.Option(0.1, help="Dropout rate"),
-    learning_rate: float = typer.Option(0.002, help="Learning rate"),
+    dropout: float = typer.Option(0.3236, help="Dropout rate"),
+    learning_rate: float = typer.Option(0.001666, help="Learning rate"),
     weight_decay: float = typer.Option(1e-4, help="Weight decay"),
     num_epochs: int = typer.Option(200, help="Number of epochs"),
     batch_size: int = typer.Option(11701, help="Batch size"),
-    optimizer_name: str = typer.Option("RMSprop", help="Optimizer name"),
+    optimizer_name: str = typer.Option("Adam", help="Optimizer name"),
     model_checkpoint_callback: bool = typer.Option(True, help="Whether to use model checkpointing"),
     ) -> None:
     """
@@ -234,13 +198,16 @@ def train_model(
 
     # Download data from GCS
     data_path = download_from_gcs(bucket_name, source_folder, local_data_folder)
-    data_module = WikiCS(root=data_path, is_undirected=True)
+    data_module = load_split_data(data_path)
     data = data_module[0]
-   
-    # Run over all 20 splits and then average the results
-    # NIX PILLE
-    # num_splits = data_module[0].train_mask.shape[1] 
-    num_splits = 1
+
+    # Param to tell how many splits to train on - check for invalid input
+    if num_splits >= data.train_mask.shape[1]:
+        # Run over all 20 splits and then average the results
+        num_splits = data.train_mask.shape[1] 
+    else:
+        num_splits = num_splits
+
     print(f"Total splits: {num_splits}")
 
     # early_stop_callback = EarlyStopping(
