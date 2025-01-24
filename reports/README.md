@@ -400,10 +400,10 @@ Using dockers simplified our workflow by avoiding the need to manually configure
 >
 > Answer:
 
-The group mostly debugged using the standard python debugger in Visual Studio Code, this was
+The group mostly debugged using the standard python debugger in Visual Studio Code, this was done by liberally using breakpoints and observing the local memory. Along with this a lot of the debugging was done in relation to the integration with GC for this traditional debugging was not applicable so we used a mix of generative ai and the documentation to understand the problems we encountered.
 
---- question 16 fill here ---
-???
+We did not profile our code to any major extent or use any of the tools discussed in the course, the reason we did this was time constraints involved in fixing anything we received from the profiling. Furthermore, we deemed that the version of the code we had running was relatively fast for the use case.
+This would of course in a larger or longer project not have been the case.
 
 ## Working in the cloud
 
@@ -448,7 +448,15 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
-[This figure](figures/cloud_storage.png) displays the cloud storage of our project, while this [this figure](figures/cloud_bucket.png) shows what our project bucket contains. The 'model' folder contain the best model per split as well as the best overall model (across splits). The two folders 'Prediction' and 'Userinput' are a result of our API, such that for each API call the associated user input and the final predictions were saved respectively. The last folder 'torch_geometric_data' contains our source data, both raw and processed.
+```markdown
+![cloud_storage](figures/cloud_storage.png)
+```
+
+```markdown
+![cloud_bucket](figures/cloud_bucket.png)
+```
+
+The first of the above screenshot displays the cloud storage of our project, while the second shows what our project bucket contains. The 'model' folder contain the best model per split as well as the best overall model (across splits). The two folders 'Prediction' and 'Userinput' are a result of our API, such that for each API call the associated user input and the final predictions were saved respectively. The last folder 'torch_geometric_data' contains our source data, both raw and processed.
 
 ### Question 20
 
@@ -457,7 +465,11 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
-[This figure](figures/artifact_docker.png) shows our three docker images, one for api, test and train respectively. As mentioned in question 15 utilising the dockerfiles ensures portability and scalability.
+```markdown
+![artifact_docker](figures/artifact_docker.png)
+```
+
+The above image shows our three docker images, one for api, test and train respectively. As mentioned in question 15 utilising the dockerfiles ensures portability and scalability.
 
 ### Question 21
 
@@ -467,6 +479,10 @@ For the project, we have used the following GCP services:
 > Answer:
 
 !! INSERT PICTURE !!!
+
+```markdown
+
+```
 
 [This figure](figures/cloud_build.png) shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
 
@@ -483,7 +499,9 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 22 fill here ---
+We managed to train our model in the cloud using the vertex ai train functionality. We did this by creating a self contained docker that had all the nescesary files to train and then spun that docker up in the training environment.
+In the environemnt it would get the files from our data bucket and deposit logs to Weights and Biases through the GC secret manager and deposit all the trained models into another bucket while simultaniously always keeping track of the best model to date by validation accuracy. 
+With this we also managed to run the hyper parameter W&B sweep on our model and find the best parameters.
 
 ## Deployment
 
@@ -500,8 +518,12 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
-Yes, we implemented an API that downloads the trained model from the Cloud Bucket and applies the trained weights and hyperparameters to the model architecture. ....... fortsæt her
+We managed to write and implement an API using FastAPI for inference with our current best model.
+We did this by downloading the best model from the Cloud Bucket along with its hyperparameters, then loading the model into the architecture in model.py we run the input data sent by the request through the model to get a prediction, this prediction is returned to the user.
+This input data is then sent to a userdata bucket in the the cloud for use in datadrifting monitoring and for future training.
+The predictions are not stored anywhere, however this would be beneficial to be able to measure how the model performs on data, especially when the model can change while deployed.
 
+We also added continous integration to our API making it automatically deploy a new docker in cloud run whenever there is a push to the main branch of the repository, this ensures that the code is always up to date.
 
 ### Question 24
 
@@ -566,7 +588,11 @@ Yes, we implemented an API that downloads the trained model from the Cloud Bucke
 >
 > Answer:
 
---- question 27 fill here ---
+The first 50$ credit was spent early in the process as a compute engine was left running overnight with a GPU attached. Then after we switched to using vertex ai for the training process such mistakes could not occur any longer. 
+From the next 50$ credits we spent ??? over the remaining process, a very small part was spent on storage while the majority was spent training using a GPU and docker builds.
+We ended up building a lot of docker containers due to the trigger automatically building at changes in the main branch and a lot of small build errors leading to rebuilding.
+
+However it was a very small amount of credit used in total comparatively. This was mainly due to the short training times.
 
 ### Question 28
 
@@ -582,7 +608,7 @@ Yes, we implemented an API that downloads the trained model from the Cloud Bucke
 >
 > Answer:
 
---- question 28 fill here ---
+We implemented a driftreport script that could generate a datadrift report as a html from all inputted user data in the inference API.
 
 ### Question 29
 
@@ -625,7 +651,7 @@ Finally, FastAPI was implemented to enable users to input data into our model an
 >
 > Answer:
 
-During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud. However once it we figured everything out with the right permission, service account and credentials, it worked very well and we therefore managed to do all of our training and hyperparameter tuning in the cloud.
+During the project, setting up GCP and making everything work seamlessly in the cloud has by far taken up most of our time. We had a lot of issues with a docker images and training of our model working well locally, but not in the cloud. However once we figured everything out with the right permission, service account and credentials, it worked very well and we therefore managed to do all of our training and hyperparameter tuning in the cloud.
 
 
 ### Question 31
