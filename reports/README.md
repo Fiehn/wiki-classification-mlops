@@ -345,15 +345,13 @@ Hyper parameter tuning was done using a sweep in W&B, this sweep used one split 
 >
 > Answer:
 
-```markdown
-![my_train](figures/train1.png)
-```
+
+![my_train](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/train1.png)
+
 
 We have used W&B in our project for hyper parameter tuning using a `sweep.yaml` file as well as keeping track of key metrics of our model performance. First of all we are tracking the training accuracy, respectively over each epoch (train_acc_epoch) and during training at each step (train_acc_step). These statistics help us track how well the model is learning and help us diagnose potential issues like over- or underfitting. During the training we also measure the validation accuracy (val_acc), which provides an unbiased estimate of the model's performance on unseen data. Lastly we track the test accuracy, which serves as the final evaluation metric for the model's ability to generalize to entirely unseen data.
 
-```markdown
-![my_sweep](figures/sweep.png)
-```
+![my_sweep](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/sweep.png)
 
 The sweep was performed once on the first training split of the data (1/20 of the entire data) and used a Bayesian optimization to find the best hyper parameters for the validation accuracy. This is displayed in the image where the 30 runs can be seen. This sweep was made using GC's Vertex AI train functionality to not use local resources on the intensive sweep.
 Other factors were also tracked during the hyper parameter tuning such as train and validation loss, training accuracy and a test score for unseen data.
@@ -449,13 +447,11 @@ We did not use Google Cloud Platform's Compute Engine directly for our model tra
 >
 > Answer:
 
-```markdown
-![cloud_storage](figures/cloud_storage.png)
-```
 
-```markdown
-![cloud_bucket](figures/cloud_bucket.png)
-```
+![cloud_storage](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/cloud_storage.png)
+
+
+![cloud_bucket](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/cloud_bucket.png)
 
 The first of the above screenshot displays the cloud storage of our project, while the second shows what our project bucket contains. The 'model' folder contain the best model per split as well as the best overall model (across splits). The three folders 'prediction/' and 'userinput/' 'metrics/' are a result of our API, such that for each API call the associated user input, the final predictions, and the metrics were saved respectively. The last folder 'torch_geometric_data' contains our source data, both raw and processed.
 
@@ -466,9 +462,7 @@ The first of the above screenshot displays the cloud storage of our project, whi
 >
 > Answer:
 
-```markdown
-![artifact_docker](figures/artifact_docker.png)
-```
+![artifact_docker](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/artifact_docker.png)
 
 The above image shows our three docker images, one for api, test and train respectively. As mentioned in question 15 utilising the dockerfiles ensures portability and scalability.
 
@@ -479,9 +473,8 @@ The above image shows our three docker images, one for api, test and train respe
 >
 > Answer:
 
-```markdown
-![cloud_build](figures/cloud_build.png)
-```
+
+![cloud_build](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/cloud_build.png)
 The image shows our GCP cloud build history. As seen there are many builds, some successful and some not The snapshot captures the iterative process of building and refining very well, as the failed attempts guided us toward improvements.
 
 ### Question 22
@@ -640,9 +633,9 @@ We implemented a driftreport script that could generate a datadrift report as a 
 >
 > Answer:
 
-```markdown
-![over_view](figures/projectOverview.png) 
-```
+
+![over_view](https://github.com/Fiehn/wiki-classification-mlops/blob/main/reports/figures/projectOverview.png) 
+
 
 The project takes its starting point in the most right part of the diagram, with the three pytorch boxes (lightning, geometric and codebase). This part represents the actual development of code (data, model and train) using our third-party package. While building the project codebase, we utilized UV to manage dependencies. Using UV, all necessary Python packages were added to a uv.lock and pyproject.toml files, ensuring that the project environment could be reproduced consistently across team members' systems and cloud environments. To further enhance reproducibility, we containerized the environment. Docker images were created for both training and testing workflows.
 
