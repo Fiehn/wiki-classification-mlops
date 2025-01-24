@@ -43,11 +43,7 @@ class NodeInput(BaseModel):
 
 class PredictionOutput(BaseModel):
     node_predictions: List[int]  # Predicted class for each node
-
-# FastAPI app
-# app = FastAPI() denne er overflødig
-
-# app.mount("/metrics", make_asgi_app(registry=MY_REGISTRY))
+    # metrics: dict  # Metrics for the prediction request
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -118,31 +114,41 @@ async def predict_node_classes(node_input: NodeInput, background_tasks: Backgrou
             predictions_filename = f"predictions/gnn_predictions_{timestamp}.json"
             background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, predictions_filename, json.dumps(predictions_json))
 
-            # userinput_filename = f"userinput/user_input_{timestamp}.json"
-            # background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, userinput_filename, json.dumps(data))
 
+            ##### User input
             # Convert PyTorch Geometric Data object to a JSON-compatible dictionary
             data_dict = {
                 "x": data.x.tolist(),  # Convert tensor to list
                 "edge_index": data.edge_index.tolist()  # Convert tensor to list
             }
-
             # Save as JSON
             userinput_filename = f"userinput/user_input_{timestamp}.json"
             background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, userinput_filename, json.dumps(data_dict))
 
-            return PredictionOutput(node_predictions=predicted_classes)
+            ##### Metrics
+            # Generate the latest metrics for Prometheus
+            metrics_data = generate_latest(MY_REGISTRY).decode("utf-8")
+            
+            metrics_dict = {}
+            for line in metrics_data.splitlines():
+                if not line.startswith("#") and line.strip():
+                    key, value = line.split(" ", 1)
+                    metrics_dict[key] = value
+            
+            metrics_json = {
+                "timestamp": timestamp,
+                "metrics": metrics_dict
+            }
+            # Save metrics to GCS asynchronously
+            metrics_filename = f"metrics/metrics_{timestamp}.json"
+            background_tasks.add_task(upload_file_to_gcs, BUCKET_NAME, metrics_filename, json.dumps(metrics_json))
+
+            return PredictionOutput(node_predictions=predicted_classes) # , metrics=metrics_dict
 
     except Exception as e:
         error_counter.inc()  # Increment error counter for any error
         raise HTTPException(status_code=500, detail=str(e)) from e
 
-
-# Custom metrics endpoint
-@app.get("/metrics")
-async def metrics():
-    # Expose the metrics for Prometheus scraping
-    return generate_latest(MY_REGISTRY)
 
 # Run this in the first terminal - this will start the API: 
 # uvicorn src.wikipedia.api:app --reload
