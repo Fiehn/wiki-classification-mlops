@@ -74,14 +74,13 @@ The directory structure of the project looks like this:
 │   ├── test.py                         # Tests for Wikipedia functionality
 │   ├── train.py                        # Training script for Wikipedia models
 │   └── visualize.py                    # Visualization scripts for Wikipedia data
-│   └── gcp_util.py                     # Handles all GCP interaction
+│   └── gcp_utils.py                    # Handles all GCP interaction
 ├── tests/                              # Unit and integration tests
 │   ├── __init__.py                     # Initializes the test suite
 │   ├── locustfile.py                   # Load testing configuration with Locust
 │   ├── test_api.py                     # Tests for API functionality
 │   ├── test_data.py                    # Tests for data handling
 │   ├── test_model.py                   # Tests for model functionality
-│   ├── test_train_on_split.py          # Tests for training on different data splits
 │   ├── test_train.py                   # General training tests
 │   └── datastats/                      # Data statistics-related tests
 │       └── test_label_distribution.png # Label distribution visualization for training data
