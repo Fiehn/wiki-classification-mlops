@@ -221,8 +221,7 @@ More explicit use would have been ideal for formating consistency. In a larger p
 >
 > Answer:
 
-We implemented a data test and a model test. They primarily test the shape of the input and the existance of certain functions in the model. The forward pass is tested in the model to ensure training is possible. 
-???
+We implemented tests for train, model, data and api scripts, which totaled to 26 tests. The focus of our tests have been on the model. Primarily, we tested the initialization and behavior of the NodeLevelGNN model, including its optimizer configurations, forward pass, training and validation steps, and  prediction as these are critical for the application's functionality.  This included checking for invalid configurations, empty graphs, forward pass modes, metric tracking, mismatch of inputs and parameterized inputs to the model. We have tried to check edge cases to ensure that the model behaves as expected in all scenarios.Simple asserts as well as pytest.rasises were primarily used to check for errors. We used pytest.fixture and mocked components like graph data, data loading, training, and GCP interactions to validate the training pipeline. Additionally, we ensured the dataset loading, data splitting, and loader preparation worked as expected. API tests verified endpoint functionality. We used CliRunner from typer to test the CLI commands and mocked the wandb as well as used CSVLogger to test the logging outside of wandb. Furthermore, in the actual scripts we used try/excepts to catch errors as well as if/else and return which type of error e.g. ValueError. 
 
 ### Question 8
 
@@ -237,7 +236,7 @@ We implemented a data test and a model test. They primarily test the shape of th
 >
 > Answer:
 
---- question 8 fill here ---
+Our current total coverage is 52% if we only look at the 4 major files. If we take all of our source code we have 32% coverage. This is of course not optimal, but we have focused on the most important parts of the code to work and have instead of making basic checks, have tried to use mock data and other methods to ensure that the code works as intended. If we had more time we would definitely focus on getting a higher code coverage, but the aim of the course is to be introduced to these new methods and not to make a publish worthy paper. If we have 100% coverage we would definitely trust the code to be better than with a lower coverage, however this can also be misleading, if we just have a lot of asserts that are not actually testing anything useful such as testing if a variable exists, but not checking if the value or shape is what is expected. Therefore we would still not trust the code to be error free, just that it is more likely to be error free if it has a high coverage.
 
 ### Question 9
 
@@ -679,13 +678,14 @@ Solving this took time and led to using the already implemented function for sto
 
 
 Student s204617 and s204623 was in charge of setting up the inital cookie cutter project and github repository, as well as developing the docker container (in the cloud) for training our application. 
-Student s204617 has been in charge of setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
-Students s204070 and s204617 building the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on other papers and optimising the hyperparameters with a wandb sweep. 
+Student s204617 and s204617 have been in charge of continuous integration (unit tests, actions, pre-commit) such as setting up the overall workflow and tests, while all other members have contributed with more specific tests and checks.
+Students s204070 and s204617 built the structure of our data.py, train.py and model.py. The others have helped out, but majority of the work was done by the two first mentioned students. s204070 did an overhaul to make the train more modular and loading data using best practice based on others papers and optimising the hyperparameters with a wandb sweep. 
 Student s204070 has made the tasks.py to create invoke commands for everything.
 Student s204070 has set up W&B with help from s204605. Together they have been in charge of the tracking of the training and testing (including datastatistics.py, visualization.py, configurations and docker image of test). 
 Student 204605 has been in charge of implementing Evidently AI.
 Student s204617 and s204623 has been in charge of GCP. 
 Student s204617, s204623 and s194645 has been in charge of API.
+
 
 We have used ChatGPT to help debug our code. Additionally, we used GitHub Copilot to help write some of our code.
 All members have contributed to the project and writing the report. Overall it has been a collaborative process making the project.
