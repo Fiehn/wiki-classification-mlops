@@ -439,7 +439,7 @@ For the project, we have used the following GCP services:
 >
 > Answer:
 
---- question 18 fill here ---
+We did not use Google Cloud Platform's Compute Engine directly for our model training. Instead, we used the platform Vertex AI, making use of its advanced capabilities such as its built-in feature of managing and optimizing compute instances by automatically turning them on and off as needed. This feature made it easier to economize with our limited allocated compute resources. Consequently, Vertex AI proved useful for training our model. For the deployment phase, we used GCP's Cloud Run, a serverless compute platform, for hosting and running our application in simulated production. In terms of hardware, we used the general-purpose machine type n1-standard-4, and a single GPU for NVIDIA tesla T4 for training. Both the training and API were started by making use custom docker images. 
 
 ### Question 19
 
@@ -539,7 +539,7 @@ We also added continous integration to our API making it automatically deploy a 
 >
 > Answer:
 
---- question 24 fill here ---
+For deployment we wrapped our model into application using [FastAPI](https://fastapi.tiangolo.com). We constructed an API which imitates inference using our trianed model. Once the API is active, the user who is interacting with the API prompts $x$ and  $edge\_index$, to which the predicted class is returned. Firstly, we tried this out locally first by activating the API, and running the script [api_user_input_test.py](https://github.com/Fiehn/wiki-classification-mlops/blob/main/src/wikipedia/api_user_input_test.py) to simulate a plausible user input. Afterwards, the API was deployed in the cloud using a Cloud Build Trigger through Cloud Run which automatically deployed the latest api docker image ([api.dockerfile](https://github.com/Fiehn/wiki-classification-mlops/blob/main/dockerfiles/api.dockerfile)) every time we pushed to the main branch. 
 
 ### Question 25
 
